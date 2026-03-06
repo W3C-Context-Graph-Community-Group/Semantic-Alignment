@@ -4,7 +4,7 @@
 
 This repository contains the Semantic Alignment Committee's working materials for mapping semantic-web formats into the Context Graph data model's canonical atomic form. The committee is the interface between the Context Graph specification and the semantic web, ontology, and knowledge graph ecosystem. If you work with OWL, RDF, SHACL, SKOS, or related standards and want to understand how existing knowledge infrastructure connects to the Context Graph, this committee is your entry point.
 
-The committee builds open source adapters that decompose existing representation formats (starting with SHACL) into the canonical facet tables.  This document presents the Context Graph data model's canonical form and demonstrates it through semantic-web adapter examples. It serves as both the committee's working materials and a working draft of the core specification.
+The committee builds open-source adapters that decompose existing representation formats (starting with SHACL) into the canonical facet tables.  This document presents the Context Graph data model's canonical form and demonstrates it through semantic-web adapter examples. It serves as both the committee's working materials and a working draft of the core specification.
 
 |Role|Authority|
 |-|-|
@@ -21,7 +21,7 @@ These definitions are from the Context Graph specification maintained by the W3C
 Measurable incomplete and/or incoherent information between local events and global systems. Context is not noise, not metadata, and not a linguistic concept. The goal of the group is to reduce it to a formal, information-theoretic representation of the state of missing and misaligned information in communication between systems — in the Shannon sense: sender, receiver, channel, signal, and uncertainty — structured uncertainty that can be sampled, bounded, scored, and reduced through observation.
 
 ### Context (Graph)
-With a graph, a context is a specific graph configuration that forms a testable pattern for validation and rule initiation. 
+Within a graph, a context is a specific graph configuration that forms a testable pattern for validation and rule initiation.
 
 ### Reifications
 A reification is a set of assertions that are made about a given statement or ground assertion. A reification is notable in that rather than describing a specific entity, the reification describes either the relationship between two specific entities, or between an entity and its value. Reifications are significant because they are typically used to describe the event that triggered the ground assertion to be added to the context graph, in effect creating a hypergraph event log that can then be analysed as a graph post hoc. Please see [Reifications and Context Events](#reifications-and-context-events).
@@ -50,7 +50,13 @@ A shape is a structural, rather than semantical or Classical, representation of 
 A constraint is a restriction that exists upon an entity that defines what states it can and cannot be in, as represented within a graph. When an change request occurs, the change is validated, and if it passes validation is it logged (and any rules defined on it are initiated), when it fails, a report is generated, which also may initiate additional action.
 
 ### Rule
-A rule is initiated when a state change is made relevant to a particular context within the graph. This rule will generally create additional facts, but may also initiate external services through a defined protocol.  
+A rule generates new content upon validation of a given change in the graph, and is initiated when a state change is made relevant to a particular context within the graph. This rule will generally create additional facts, but may also initiate external services through a defined protocol.  
+
+### Report
+A report is an artefact (as a named graph) generated when a particular validation fails, indicating the reason for the failure. Reports are treated as part of the context graph. Depending upon the (configurable) severity of the invalidation, the report may be generated even when a warning or information node is validated. Reports can be queried as part of the event system.
+
+### State Machine
+A state machine within the current context is a system that can accept events (insertions from external systems, queries, modifications, and so forth) that, if validated, produce new information via rules, or generate reports that can initiate other actions if validation fails. The state machine is deliberately deterministic and mechanistic, though it can rely on external agentic systems to initiate external actions. The context system is a state machine.
 
 ### Coherence
 The degree to which required meaning, structure, data, and context are sufficiently aligned for the current intent and risk tolerance at a boundary. When coherence is high, systems can act. When coherence is low, the gap between local and global state is consequential — the same term, the same data, the same structure may produce different outcomes depending on which system interprets it.
