@@ -6,8 +6,10 @@ This repository contains the Semantic Alignment Committee's working materials fo
 
 The committee builds open source adapters that decompose existing representation formats (starting with SHACL) into the canonical facet tables.  This document presents the Context Graph data model's canonical form and demonstrates it through semantic-web adapter examples. It serves as both the committee's working materials and a working draft of the core specification.
 
-**Community Group Chair:** Ron Itelman
-**Semantic Alignment Committee Chair:** Kurt Cagle
+|Role|Authority|
+|-|-|
+|Community Group Chair|Ron Itelman|
+|Semantic Alignment Committee Chair|Kurt Cagle|
 
 ---
 
