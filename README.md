@@ -17,7 +17,15 @@ These definitions are from the Context Graph specification maintained by the W3C
 
 **Context** — Measurable incomplete and/or incoherent information between local events and global systems. Context is not noise, not metadata, and not a linguistic concept. The goal of the group is to reduce it to a formal, information-theoretic representation of the state of missing and misaligned information in communication between systems — in the Shannon sense: sender, receiver, channel, signal, and uncertainty — structured uncertainty that can be sampled, bounded, scored, and reduced through observation.
 
-**Context Graph** — An auditable log of Context events as a local representation of local and global systems boundaries. A context graph assigns identity to atomic units of information related to context events using a canonical "Four Facets Model": Data, Meaning, Structure, and Context. A Context Graph is intentionally the most simple unit of information to be general to any domain and agnostic to any technology. A Context Graph instance is ephemeral — instantiated on demand at a boundary, populated during an interaction, and producing a persistent resolution trace that survives after the instance is destroyed.
+**Reifications** — A reification is a set of assertions that are made about a given statement or ground assertion. A reification is notable in that rather than describing a specific entity, the reification describes either the relationship between two specific entities, or between an entity and its value. Reifications are significant because they are typically used to describe the event that triggered the ground assertion to be added to the context graph, in effect creating a hypergraph event log that can then be analysed as a graph post hoc. Please see [Reifications and Events](#Reifications_and_Events).
+
+**Hypergraph** - A hypergraph is a labeled directed cyclic graph (LDCG) that permits reifications, meaning that an assertion can be treated as a first-class resource separate from its components. Both knowledge graphs and context graphs are hypergraphs. The assumption being made here is that all references to graphs made within this working document are to hypergraphs, and refer both to reified RDF Star (RDF 1.2) based graphs and (with certain caveats) to LPG-based graphs such as those that support the OpenCypher standard, as well as any other products or open source projects that support IRI addressability, triples manipulation and reification. Knowledge Graphs prior to 2016 without reification support are grandfathered in under the term but may not have all the functionality described as part of this effort.  
+
+**Context Event** - A Context Event is a process or activity that spawns a record (an assertion) and associated reification of that assertion that is published into the context graph. The event has a system-generated unique name or identifier that can be referenced by subsequent events, creating an event trail, and to the extent possible maintains temporal and spatial information about that event along with related content (who or what initiated the event, what was changed during the event, classification of the event and so forth). The event itself is ephemeral and will typically be a change of the state of the world as modelled by the graph; however, the context event follows a specific standard (the coherence protocol) and the Context Event entity within the Context Graph is the record of the event according to that protocol.
+
+**Context Graph** — An auditable log of Context events as a local representation of local and global systems boundaries, as a hypergraph. ~~A context graph assigns identity to atomic units of information related to context events using a canonical "Four Facets Model": Data, Meaning, Structure, and Context. A Context Graph is intentionally the most simple unit of information to be general to any domain and agnostic to any technology. A Context Graph instance is ephemeral — instantiated on demand at a boundary, populated during an interaction, and producing a persistent resolution trace that survives after the instance is destroyed.~~
+
+
 
 **Coherence** — The degree to which required meaning, structure, data, and context are sufficiently aligned for the current intent and risk tolerance at a boundary. When coherence is high, systems can act. When coherence is low, the gap between local and global state is consequential — the same term, the same data, the same structure may produce different outcomes depending on which system interprets it.
 
@@ -26,6 +34,12 @@ These definitions are from the Context Graph specification maintained by the W3C
 **Intent** — The actor's pragmatic purpose at a boundary. Unlike semantics, which defines terms with the purpose of shared consistency as an authority, intent is pragmatic — it reflects an individual actor's language, understanding, and purpose. Intent may be explicit (stated by the user), inferred (derived by the system from available evidence), or composed (assembled from multiple sources, including system designer intent and subsystem composition). When consequential and unresolved, intent should be sampled across the boundary and recorded in the resolution trace. Intent is the information that determines which resolution of ambiguity is correct for this actor, at this moment.
 
 **Decision Interface** — A neutral contract between the Context Graph's coherence measurements and external decision models. Defines what inputs a decision model receives (the uncertainty vector, policy parameters, boundary metadata), what outputs it must return (a protocol action and optional flags), and what must be recorded in the resolution trace for auditable replay. The interface is neutral to the choice of decision framework.
+
+---
+
+## Reifications and Context Events
+
+
 
 ---
 
