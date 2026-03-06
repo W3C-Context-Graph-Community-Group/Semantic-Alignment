@@ -37,7 +37,7 @@ Every claim in the Context Graph — regardless of source format — reduces to 
 |---|---|---|---|---|
 | What entity is this about? | Who made this claim? | When? | What property? | What value? |
 
-This is the irreducible unit — sixth normal form. A SHACL shape decomposes into one or more rows (one per assertion). A JSON field is one row. A CSV cell is one row. A blob reference is one row. Everything decomposes to this.
+This is the irreducible canonical claim form — 6NF-like in spirit. A SHACL shape decomposes into one or more rows (one per assertion). A JSON field is one row. A CSV cell is one row. A blob reference is one row. Everything decomposes to this.
 
 ### How URIs Work
 
