@@ -14,4 +14,4 @@ The committee builds open-source adapters that decompose existing representation
 ## Links
 
 * [Glossary](Glossary.md) - This provides terms of reference for the working group with respect to Context Graph architecture.
-* [Protocol Requirements](Protocol-Requirements.md)
+* [Protocol Requirements](Protocol Requirements.md)
