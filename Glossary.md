@@ -2,11 +2,12 @@
 
 These definitions are from the Context Graph specification maintained by the W3C Community Group.
 
-## Context (General)
-Measurable incomplete and/or incoherent information between local events and global systems. Context is not noise, not metadata, and not a linguistic concept. The goal of the group is to reduce it to a formal, information-theoretic representation of the state of missing and misaligned information in communication between systems — in the Shannon sense: sender, receiver, channel, signal, and uncertainty — structured uncertainty that can be sampled, bounded, scored, and reduced through observation.
+## Signal
+~~Measurable incomplete and/or incoherent information between local events and global systems. Context is not noise, not metadata, and not a linguistic concept. The goal of the group is to reduce it to a formal, information-theoretic representation of the state of missing and misaligned information in communication between systems — in the Shannon sense: sender, receiver, channel, signal, and uncertainty — structured uncertainty that can be sampled, bounded, scored, and reduced through observation.~~
+A signal is an encoded event produced by an external environment that will be added to the context graph once the signal (as an event message) has been authenticated (verified), checked for well-formedness, and validated. A signal generates either a validated context event, if it passes validation, or a report if it does not.
 
-## Context (Graph)
-Within a graph, a context is a specific graph configuration that forms a testable pattern for validation and rule initiation.
+## Context
+Within a graph, a context is a specific graph configuration that forms a testable pattern for validation and rule initiation. 
 
 ## Reifications
 A reification is a set of assertions that are made about a given statement or ground assertion. A reification is notable in that rather than describing a specific entity, the reification describes either the relationship between two specific entities, or between an entity and its value. Reifications are significant because they are typically used to describe the event that triggered the ground assertion to be added to the context graph, in effect creating a hypergraph event log that can then be analysed as a graph post hoc. Please see [Reifications and Context Events](#reifications-and-context-events).
