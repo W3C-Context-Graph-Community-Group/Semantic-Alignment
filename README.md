@@ -10,5 +10,7 @@ The committee builds open-source adapters that decompose existing representation
 |Semantic Alignment Committee Chair|Kurt Cagle|
 
 ---
-#Links
-[Glossary](Glossary.md)
+
+##Links
+
+* [Glossary](Glossary.md) - This provides terms of reference for the working group with respect to Context Graph architecture.
