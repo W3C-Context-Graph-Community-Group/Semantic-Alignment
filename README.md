@@ -65,10 +65,21 @@ The degree to which required meaning, structure, data, and context are sufficien
 The specification for composing a coherence representation that may use multiple Context Graphs across system boundaries: measuring gaps and how they propagate, how resolution traces link. The Coherence Protocol is distinct from the Context Graph data model — the Context Graph describes a single boundary; the Coherence Protocol describes how boundaries compose.
 
 ### Context Graph Control Plane
+A control plane is an interface layer that connects the system's state machine to external events. This manifests at several control points: at the event ingestion layer, which takes external data and formulates them as events (this may also perform routing to other control graph state machines depending upon categoriation), at the validation stage, which incorporates verifiable certificates in order to ascertain access control levels, at the rule level when new content is created, and at the report level when an invalidation error occurs. This approach is designed to scale readily, as each state machine can handle specific types of context.
 
+### Verifiable Credentials
 
-### Intent
+The context graph is not an open or public triple store. Because it can act in an agentic sense through the control plane, it needs to be governed. Among other things, this means that validation _includes_ the ability to read the intent expressed within each event, even if the message is otherwise valid. Such intent can be determined through certificates and authentication events. For instance, a bank transaction requires that a trusted session be enabled cryptographically and that it remain in force until the session expires according to the dictates of the certificates. Certificates are submitted as part of an authentication event, and either natural expire or terminate when validation fails for specific reasons. 
+
+~~
+### Intent (Previous)
+
 The actor's pragmatic purpose at a boundary. Unlike semantics, which defines terms with the purpose of shared consistency as an authority, intent is pragmatic — it reflects an individual actor's language, understanding, and purpose. Intent may be explicit (stated by the user), inferred (derived by the system from available evidence), or composed (assembled from multiple sources, including system designer intent and subsystem composition). When consequential and unresolved, intent should be sampled across the boundary and recorded in the resolution trace. Intent is the information that determines which resolution of ambiguity is correct for this actor, at this moment.
+~~
+
+### Intent (Graph)
+
+
 
 ### Decision Interface
 A neutral contract between the Context Graph's coherence measurements and external decision models. Defines what inputs a decision model receives (the uncertainty vector, policy parameters, boundary metadata), what outputs it must return (a protocol action and optional flags), and what must be recorded in the resolution trace for auditable replay. The interface is neutral to the choice of decision framework.
