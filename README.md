@@ -71,14 +71,15 @@ A control plane is an interface layer that connects the system's state machine t
 
 The context graph is not an open or public triple store. Because it can act in an agentic sense through the control plane, it needs to be governed. Among other things, this means that validation _includes_ the ability to read the intent expressed within each event, even if the message is otherwise valid. Such intent can be determined through certificates and authentication events. For instance, a bank transaction requires that a trusted session be enabled cryptographically and that it remain in force until the session expires according to the dictates of the certificates. Certificates are submitted as part of an authentication event, and either natural expire or terminate when validation fails for specific reasons. 
 
-~~
 ### Intent (Previous)
 
-The actor's pragmatic purpose at a boundary. Unlike semantics, which defines terms with the purpose of shared consistency as an authority, intent is pragmatic — it reflects an individual actor's language, understanding, and purpose. Intent may be explicit (stated by the user), inferred (derived by the system from available evidence), or composed (assembled from multiple sources, including system designer intent and subsystem composition). When consequential and unresolved, intent should be sampled across the boundary and recorded in the resolution trace. Intent is the information that determines which resolution of ambiguity is correct for this actor, at this moment.
-~~
+~~The actor's pragmatic purpose at a boundary. Unlike semantics, which defines terms with the purpose of shared consistency as an authority, intent is pragmatic — it reflects an individual actor's language, understanding, and purpose. Intent may be explicit (stated by the user), inferred (derived by the system from available evidence), or composed (assembled from multiple sources, including system designer intent and subsystem composition). When consequential and unresolved, intent should be sampled across the boundary and recorded in the resolution trace. Intent is the information that determines which resolution of ambiguity is correct for this actor, at this moment.~~
 
-### Intent (Graph)
+### Intentional Graph
 
+Intent is the anticipation of actions a given actor will take, given certain events (priors). It is, in effect, a simulation of a context graph based upon a hypothetical context. Such a simulation can  be called an Intentional Graph. The analysis of such Bayesian priors can be added as annotational overlays, and from these analyses, the Intention Graph, partitioned into a separate forward-facing named graph, can be constructed. The intentional graph then participates in a conversation (a narrative interaction) with an external agent that provides the relevant events based upon surfaced content within the simulation. Once the simulation has terminated, the external agent may then initiate events based upon the results of the intentional graph as a merge.
+
+One key point to understand here - the context system does not (and arguably cannot) have a concept of external agency. It is a state machine, and beyond what the system perceives through external events (epistomological or epistolic) the state machine cannot "know" in any meaningful sense, agentic intent. What it can do, however, is append to the schema constraints and rules those specific conditions and actions that cause a change in behaviour based upon specific context - when Jane is performing the actions, this is how the rules and behaviours for these relationships behave as compared to how they do so when John as agent is performing those actions. This system is reactive but evolutionary. 
 
 
 ### Decision Interface
