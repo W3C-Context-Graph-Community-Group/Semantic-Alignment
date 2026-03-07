@@ -2,6 +2,10 @@
 
 These definitions are from the Context Graph specification maintained by the W3C Community Group.
 
+## Assertion
+An assertion is a statement of belief. It is the foundation of the Semantic Web, and the basis for RDF (and many graph representations of knowledge). An assertion is epistomological in that it is not necessarily truth (in the sense that it is an accurate reflection of the world) but rather is a statement that reflects the truth as given by a specific authority. A set of assertions is called a graph, though for purposes of discussion, such a graph should be considered a [hypergraph](#hypergraph). 
+
+
 ## Signal
 ~~Measurable incomplete and/or incoherent information between local events and global systems. Context is not noise, not metadata, and not a linguistic concept. The goal of the group is to reduce it to a formal, information-theoretic representation of the state of missing and misaligned information in communication between systems — in the Shannon sense: sender, receiver, channel, signal, and uncertainty — structured uncertainty that can be sampled, bounded, scored, and reduced through observation.~~
 
