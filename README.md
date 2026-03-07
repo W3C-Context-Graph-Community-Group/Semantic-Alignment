@@ -1,4 +1,4 @@
-#W3C Context Graphs Community Group — Semantic Alignment Committee
+# W3C Context Graphs Community Group — Semantic Alignment Committee
 
 This repository contains the Semantic Alignment Committee's working materials for mapping semantic-web formats into the Context Graph data model's canonical atomic form. The committee is the interface between the Context Graph specification and the semantic web, ontology, and knowledge graph ecosystem. If you work with OWL, RDF, SHACL, SKOS, or related standards and want to understand how existing knowledge infrastructure connects to the Context Graph, this committee is your entry point.
 
@@ -11,6 +11,6 @@ The committee builds open-source adapters that decompose existing representation
 
 ---
 
-##Links
+## Links
 
 * [Glossary](Glossary.md) - This provides terms of reference for the working group with respect to Context Graph architecture.
