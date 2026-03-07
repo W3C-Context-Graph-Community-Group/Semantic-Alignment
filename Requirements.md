@@ -309,3 +309,4 @@ Once the SHACL adapter works, document the general pattern so future adapters (J
 The spec follows the implementation. We ship working examples and let the math prove the specification. Consensus emerges from working code.
 
 ---
+
