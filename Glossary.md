@@ -1,93 +1,432 @@
 # Context Graph Specification Glossary
 
-These definitions are from the Context Graph specification maintained by the W3C Community Group.
-
-## Assertion
-An assertion is a statement of belief. It is the foundation of the Semantic Web, and the basis for RDF (and many graph representations of knowledge). An assertion is epistomological in that it is not necessarily truth (in the sense that it is an accurate reflection of the world) but rather is a statement that reflects the truth as given by a specific authority. A set of assertions is called a graph, though for purposes of discussion, such a graph should be considered a [hypergraph](#hypergraph). 
-
-
-## Signal
-~~Measurable incomplete and/or incoherent information between local events and global systems. Context is not noise, not metadata, and not a linguistic concept. The goal of the group is to reduce it to a formal, information-theoretic representation of the state of missing and misaligned information in communication between systems — in the Shannon sense: sender, receiver, channel, signal, and uncertainty — structured uncertainty that can be sampled, bounded, scored, and reduced through observation.~~
-
-A signal is an encoded event produced by an external environment that will be added to the context graph once the signal (as an event message) has been authenticated (verified), checked for well-formedness, and validated. A signal generates either a validated context event, if it passes validation, or a report if it does not.
-
-## Context
-Within a graph, a context is a specific graph configuration that forms a testable pattern for validation and rule initiation. 
-
-## Reifications
-A reification is a set of assertions that are made about a given statement or ground assertion. A reification is notable in that rather than describing a specific entity, the reification describes either the relationship between two specific entities, or between an entity and its value. Reifications are significant because they are typically used to describe the event that triggered the ground assertion to be added to the context graph, in effect creating a hypergraph event log that can then be analysed as a graph post hoc. Please see [Reifications and Context Events](#reifications-and-context-events).
-
-## Hypergraph
-A hypergraph is a labeled directed cyclic graph (LDCG) that permits reifications, meaning that an assertion can be treated as a first-class resource separate from its components. Both knowledge graphs and context graphs are hypergraphs. The assumption being made here is that all references to graphs made within this working document are to hypergraphs, and refer both to reified RDF Star (RDF 1.2) based graphs and (with certain caveats) to LPG-based graphs such as those that support the OpenCypher standard, as well as any other products or open source projects that support IRI addressability, triples manipulation and reification. Knowledge Graphs prior to 2016 without reification support are grandfathered in under the term but may not have all the functionality described as part of this effort.  
-
-## Holon
-A holon is an entity that can be represented as a system. For example, a country can be represented as a collection of states, cities, biomes and so forth. Holons represent computational boundaries between systems and, as such, typically manifest as "internal" state vs an external representation of that state. Holons may be represented as named graphs, and interact via reifications on the representation of that named graph as an entity.
-
-## Context Event
-A Context Event is a process or activity that spawns a record (an assertion) and associated reification of that assertion that is published into the context graph. The event has a system-generated unique name or identifier that can be referenced by subsequent events, creating an event trail, and to the extent possible maintains temporal and spatial information about that event along with related content (who or what initiated the event, what was changed during the event, classification of the event and so forth). The event itself is ephemeral and will typically be a change of the state of the world as modelled by the graph; however, the context event follows a specific standard (the coherence protocol) and the Context Event entity within the Context Graph is the record of the event according to that protocol.
-
-## Context Graph
-An auditable log of Context events as a local representation of local and global systems boundaries, as a hypergraph. The graph itself is an append-only data structure that represents a data fabric. Context graphs may also have a processing layer that generates validation reports and a knowledge graph-type view of the processed information for easier access. Context graphs typically provide a layer of authenticated certificates to protect the underlying structure of the graph itself, and are usually not directly queryable except through internal processes via the [Context Graph Control Plane](#context-graph-control-plane).
-
-~~A context graph assigns identity to atomic units of information related to context events using a canonical "Four Facets Model": Data, Meaning, Structure, and Context. A Context Graph is intentionally the most simple unit of information to be general to any domain and agnostic to any technology. A Context Graph instance is ephemeral — instantiated on demand at a boundary, populated during an interaction, and producing a persistent resolution trace that survives after the instance is destroyed.~~
-
-## Knowledge Graph
-A knowledge graph is a hypergraph structure focused on direct assertions and indexed analytic computations, and is typically more topically oriented than a context graph. In the CG architecture, the knowledge graph is typically computed from the context graph and is usually more publicly accessible. 
-
-## Shapes and SHACL
-A shape is a structural, rather than semantical or Classical, representation of the constraints and rules acting upon specific nodes and their contexts within a graph. The Shape Constraint Language (SHACL) is a language for the construction of and interaction with shapes within one or more graphs. it is an abstraction language that utilises the abstractions inherent in RDF 1.2, but most of the design principles involved with SHACL can be carried over with minor modification to the LPG-based languages as well in an isomorphic fashion. This proposal is written with SHACL in mind as the graph control plane.
-
-## Constraint
-A constraint is a restriction that exists upon an entity that defines what states it can and cannot be in, as represented within a graph. When an change request occurs, the change is validated, and if it passes validation is it logged (and any rules defined on it are initiated), when it fails, a report is generated, which also may initiate additional action.
-
-## Rule
-A rule generates new content upon validation of a given change in the graph, and is initiated when a state change is made relevant to a particular context within the graph. This rule will generally create additional facts, but may also initiate external services through a defined protocol.  
-
-## Report
-A report is an artefact (as a named graph) generated when a particular validation fails, indicating the reason for the failure. Reports are treated as part of the context graph. Depending upon the (configurable) severity of the invalidation, the report may be generated even when a warning or information node is validated. Reports can be queried as part of the event system.
-
-## State Machine
-A state machine within the current context is a system that can accept events (insertions from external systems, queries, modifications, and so forth) that, if validated, produce new information via rules, or generate reports that can initiate other actions if validation fails. The state machine is deliberately deterministic and mechanistic, though it can rely on external agentic systems to initiate external actions. The context system is a state machine.
-
-## Coherence
-The degree to which required meaning, structure, data, and context are sufficiently aligned for the current intent and risk tolerance at a boundary. When coherence is high, systems can act. When coherence is low, the gap between local and global state is consequential — the same term, the same data, the same structure may produce different outcomes depending on which system interprets it.
-
-## Coherence Protocol
-The specification for composing a coherence representation that may use multiple Context Graphs across system boundaries: measuring gaps and how they propagate, how resolution traces link. The Coherence Protocol is distinct from the Context Graph data model — the Context Graph describes a single boundary; the Coherence Protocol describes how boundaries compose.
-
-## Context Graph Control Plane
-A control plane is an interface layer that connects the system's state machine to external events. This manifests at several control points: at the event ingestion layer, which takes external data and formulates them as events (this may also perform routing to other control graph state machines depending upon categoriation), at the validation stage, which incorporates verifiable certificates in order to ascertain access control levels, at the rule level when new content is created, and at the report level when an invalidation error occurs. This approach is designed to scale readily, as each state machine can handle specific types of context.
-
-## Verifiable Credentials
-
-The context graph is not an open or public triple store. Because it can act in an agentic sense through the control plane, it needs to be governed. Among other things, this means that validation _includes_ the ability to read the intent expressed within each event, even if the message is otherwise valid. Such intent can be determined through certificates and authentication events. For instance, a bank transaction requires that a trusted session be enabled cryptographically and that it remain in force until the session expires according to the dictates of the certificates. Certificates are submitted as part of an authentication event, and either natural expire or terminate when validation fails for specific reasons. 
-
-## ~~Intent (Previous)~~
-
-~~The actor's pragmatic purpose at a boundary. Unlike semantics, which defines terms with the purpose of shared consistency as an authority, intent is pragmatic — it reflects an individual actor's language, understanding, and purpose. Intent may be explicit (stated by the user), inferred (derived by the system from available evidence), or composed (assembled from multiple sources, including system designer intent and subsystem composition). When consequential and unresolved, intent should be sampled across the boundary and recorded in the resolution trace. Intent is the information that determines which resolution of ambiguity is correct for this actor, at this moment.~~
-
-## Intentional Graph
-
-Intent is the anticipation of actions a given actor will take, given certain events (priors). It is, in effect, a simulation of a context graph based upon a hypothetical context. Such a simulation can  be called an Intentional Graph. The analysis of such Bayesian priors can be added as annotational overlays, and from these analyses, the Intention Graph, partitioned into a separate forward-facing named graph, can be constructed. The intentional graph then participates in a conversation (a narrative interaction) with an external agent that provides the relevant events based upon surfaced content within the simulation. Once the simulation has terminated, the external agent may then initiate events based upon the results of the intentional graph as a merge.
-
-## Agency
-
-One key point to understand here - the context system does not (and arguably cannot) have a concept of external agency. It is a state machine, and beyond what the system perceives through external events (epistomological or epistolic) the state machine cannot "know" in any meaningful sense, agentic intent. What it can do, however, is append to the schema constraints and rules those specific conditions and actions that cause a change in behaviour based upon specific context - when Jane is performing the actions, this is how the rules and behaviours for these relationships behave as compared to how they do so when John as agent is performing those actions. This system is reactive but evolutionary. 
-
-
-## ~~Decision Interface~~
-~~A neutral contract between the Context Graph's coherence measurements and external decision models. Defines what inputs a decision model receives (the uncertainty vector, policy parameters, boundary metadata), what outputs it must return (a protocol action and optional flags), and what must be recorded in the resolution trace for auditable replay. The interface is neutral to the choice of decision framework.~~
+> **Status: Working Draft — v0.2**
+>
+> This glossary is a living document maintained by the
+> [W3C Context Graph Community Group](https://www.w3.org/community/context-graph/).
+> It is intended as a starting point for discussion, not a finalised specification.
+> Definitions marked **\[OPEN\]** have unresolved questions that the group should
+> address before stabilisation. Definitions marked **\[PLACEHOLDER\]** are
+> referenced in other entries but require fuller treatment in a subsequent draft.
+>
+> Feedback and proposed edits should be submitted as GitHub issues or pull requests
+> against the [Semantic-Alignment repository](https://github.com/W3C-Context-Graph-Community-Group/Semantic-Alignment).
 
 ---
 
-## Links
+## How to Read This Glossary
 
-- [W3C Context Graphs Community Group](https://www.w3.org/community/context-graph/)
+Entries are grouped into three layers, reflecting their role in the architecture:
 
-## License
+- **Foundational concepts** — the epistemological and information-theoretic primitives on which the architecture rests.
+- **Structural components** — named artefacts, data structures, and mechanisms in the Context Graph system.
+- **Operational concepts** — runtime behaviours, protocols, and interfaces.
 
-- **Specifications and registry content** — [W3C Software and Document License (2023)](https://www.w3.org/copyright/software-license-2023/)
-- **Source code** — [MIT License](https://opensource.org/licenses/MIT)
-- **Contributions** — All contributions are made under the [W3C Community Contributor License Agreement (CLA)](https://www.w3.org/community/about/agreements/cla/). You must [join the Community Group](https://www.w3.org/community/context-graph/) before contributing.
+Within each section, entries are ordered alphabetically. Cross-references to other glossary entries are written in **bold**.
 
-See [LICENSE.md](LICENSE.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+---
+
+## Part 1: Foundational Concepts
+
+### Assertion
+
+*Type: Foundational concept*
+
+An assertion is a statement of belief made by a specific authority. It is the foundational unit of the Semantic Web and of RDF-based graph representations.
+
+Assertions are epistemological rather than strictly factual: an assertion is not required to be an accurate reflection of the world, only a reflection of the truth as held by the asserting authority at the time of assertion. This is a deliberate design property. Because the provenance and authority of an assertion are as important as its content, assertions in this architecture are always accompanied by **reification** metadata that captures who made the assertion, when, and under what conditions.
+
+A set of assertions constitutes a **graph**. Throughout this document, all references to graphs should be understood as references to **hypergraphs** unless otherwise stated.
+
+> **\[OPEN\]** The relationship between assertions in this model and the W3C RDF 1.2 triple model should be made explicit, particularly with respect to blank nodes, named graphs, and the annotation syntax introduced in RDF 1.2.
+
+---
+
+### Coherence
+
+*Type: Foundational concept*
+
+Coherence is a measurable property of a system boundary: the degree to which the meaning, structure, data, and context required for a specific intent are sufficiently aligned for the current risk tolerance at that boundary.
+
+When coherence is high, systems can act on shared information with confidence. When coherence is low, the gap between local and global state is consequential — the same term, the same data, or the same structure may produce different outcomes depending on which system interprets it. This divergence is not a data quality problem and not a schema error; it is a structural property of boundaries between systems that operate under different assumptions.
+
+Coherence is the primary quantity that the **Context Graph** is designed to measure and, through the **Coherence Protocol**, to reduce.
+
+> **\[OPEN\]** The group should define a formal scoring model for coherence: what are the observable inputs, what scale is used, and how does coherence compose across nested **holons**?
+
+---
+
+### Context
+
+*Type: Foundational concept*
+
+Context is structured uncertainty at a system boundary: the set of conditions, assumptions, and prerequisites whose absence or misalignment prevents valid interpretation of a **signal** by a receiving system. Context is not metadata, not a linguistic property of terms, and not noise. It is the information-theoretic gap between what a sender encodes and what a receiver requires in order to act correctly on that encoding — formalised in the Shannon sense of sender, receiver, channel, signal, and uncertainty.
+
+Within the graph architecture, a context is additionally represented as a specific graph configuration forming a testable pattern against which **validation** and **rule** initiation can be triggered. These two senses — the boundary-level information gap and the graph-level structural pattern — are related: the pattern is the local representation of the gap.
+
+> **\[OPEN\]** The relationship between the information-theoretic sense (boundary gap) and the structural sense (graph pattern) should be formalised. Are these the same concept at different levels of abstraction, or two distinct concepts that share a name?
+
+---
+
+### Four Facets Model
+
+*Type: Foundational concept*
+
+The Context Graph architecture assigns identity and structure to all atomic units of contextual information using four orthogonal facets:
+
+| Facet | Description |
+|-------|-------------|
+| **Data** | The raw informational content of the unit. |
+| **Meaning** | The semantic interpretation of that content within a given vocabulary or ontology. |
+| **Structure** | The constraints and relationships governing how the unit relates to others. |
+| **Context** | The boundary conditions and prerequisites required for valid interpretation. |
+
+Every **context event**, **assertion**, and **resolution trace** can be characterised in terms of all four facets. The model is intended to be general enough to apply across domains and agnostic to any specific technology stack.
+
+> **\[OPEN\]** The mapping between the Four Facets Model and existing foundational models (e.g. the FAIR principles, the ISO 5087 information model, the W3C Data Catalog vocabulary) should be documented to situate the model in the wider standards landscape.
+
+---
+
+### Holon
+
+*Type: Foundational concept*
+
+A holon is an entity that is simultaneously a whole (with its own internal structure) and a part of a larger system. The term is used here in the computational sense: a holon is a system with a defined boundary that encapsulates internal state and exposes an external representation of that state to other systems.
+
+In the Context Graph architecture, holons define the boundaries at which coherence is measured. A country can be a holon composed of states; a microservice can be a holon within a larger application; a bank branch can be a holon within a banking system. Holons may be represented as named graphs and interact with one another through **reifications** on the named graph that represents them as an entity.
+
+The nesting of holons is recursive: a holon may contain other holons to any depth, and the **Coherence Protocol** governs how coherence measurements compose across this hierarchy.
+
+> **\[NOTE\]** The term *holon* originates with Arthur Koestler (*The Ghost in the Machine*, 1967) and has prior use in philosophy of mind and systems theory. Its adoption here is for precision, not provocation — specifically, the dual whole/part property has no clean equivalent in standard graph vocabulary. Alternatives considered included *scope*, *system boundary*, and *named graph boundary*; none captured the recursive compositional property adequately.
+
+---
+
+### Signal
+
+*Type: Foundational concept*
+
+**Conceptual definition:** A signal is the information-theoretic unit of communication between systems. It is measurable, potentially incomplete, and potentially incoherent with respect to the receiving system's model. The goal of the Context Graph architecture is to treat the uncertainty carried by a signal not as an error condition but as a first-class, structured artefact that can be sampled, bounded, scored, and reduced through observation.
+
+**Operational definition:** Within the system, a signal is an encoded event produced by an external environment and submitted for ingestion by the **Context Graph Control Plane**. Before it can become part of the context graph, a signal must pass three sequential gates:
+
+1. **Authentication** — the signal's origin is verified against the active **verifiable credential** session.
+2. **Well-formedness check** — the signal conforms to the expected encoding format and schema.
+3. **Validation** — the signal's content satisfies the applicable **constraints** and **shapes**.
+
+A signal that passes all three gates generates a **context event**. A signal that fails at any gate generates a **report** and does not modify the graph state.
+
+---
+
+## Part 2: Structural Components
+
+### Boundary
+
+*Type: Structural component* **\[PLACEHOLDER\]**
+
+A boundary is the interface between two **holons** across which **signals** are exchanged and **coherence** is measured. Boundaries are the primary sites of contextual misalignment in the architecture: terms, policies, and data structures that are well-defined within a holon may be ambiguous, absent, or contradictory when they cross a boundary into a different holon's interpretive context.
+
+> **\[OPEN\]** The group should specify whether a boundary is itself a named graph, a set of constraints, a trust domain definition, or some combination of these. The relationship between boundaries and W3C ODRL policies, and between boundaries and verifiable credential scopes, should also be addressed.
+
+---
+
+### Context Event
+
+*Type: Structural component*
+
+A context event is the record created when a validated **signal** modifies the state of the **context graph**. It is the primary unit of the graph's append-only event log.
+
+Each context event:
+
+- Is assigned a system-generated unique identifier that is stable and referenceable by subsequent events, forming an auditable **event trail**.
+- Carries temporal and spatial metadata about the moment and location of the event.
+- Records provenance metadata: who or what initiated the event, what state change was made, and how the event is classified.
+- Is published as an **assertion** with an accompanying **reification** according to the **Coherence Protocol**.
+
+The underlying activity that triggered the event is ephemeral — the event has already occurred by the time it is recorded. The context event entity within the Context Graph is the durable record of that activity, not the activity itself.
+
+---
+
+### Context Graph
+
+*Type: Structural component*
+
+A context graph is an auditable, append-only event log representing the state of **coherence** at one or more **system boundaries**, structured as a **hypergraph**.
+
+A context graph instance has the following properties:
+
+- **Append-only:** Graph state accumulates through event accretion. Prior state is never overwritten, enabling full temporal replay.
+- **Authenticated:** All modifications are gated through the **Context Graph Control Plane** using **verifiable credentials**. The graph is not a public or open triple store.
+- **Ephemeral instances, persistent traces:** A context graph instance is created on demand at a boundary interaction, populated during that interaction, and then dissolved — but it produces a **resolution trace** that persists and is queryable after the instance terminates.
+- **Structured by the Four Facets Model:** Every recorded unit of information is characterised across the **Data, Meaning, Structure, and Context** facets.
+- **Layered output:** A context graph may expose a **knowledge graph** layer — a computed, more accessible view of the processed information — while keeping the raw event log under access control.
+
+> **\[OPEN\]** The statement that context graphs are "not directly queryable except through internal processes" implies no external SPARQL endpoint. The group should make an explicit architectural decision about queryability, access control tiers, and the relationship between the raw event log and the knowledge graph view. This will be a significant point of discussion for participants from the SPARQL community.
+
+---
+
+### Hypergraph
+
+*Type: Structural component*
+
+A hypergraph, as used in this specification, is a labeled directed cyclic graph (LDCG) that supports **reification** — the capacity to treat an **assertion** as a first-class addressable resource, independent of its subject and object components. This property enables the event log architecture of the **context graph**.
+
+> **\[NOTE\]** The term *cyclic* is used deliberately. Most graph theoretic treatments regard directed cycles as pathological; in the append-only event model, cycles arise legitimately through temporal reference chains (an event may reference a prior event that references an earlier event in the same logical chain). The architecture does not prevent cycles; it manages them through temporal ordering in the event log.
+
+Both knowledge graphs and context graphs are hypergraphs in this sense. This specification is written primarily against **RDF 1.2** (and specifically the annotation syntax that supports reification as first-class syntax), but the structural principles apply with minor adaptation to LPG-based systems such as those supporting the OpenCypher standard, provided those systems support IRI addressability, triple manipulation, and reification. Knowledge graphs that predate 2016 and lack reification support are grandfathered under the term for backward compatibility, but may not support all functionality described in this specification.
+
+---
+
+### Intentional Graph
+
+*Type: Structural component* **\[OPEN\]**
+
+An intentional graph is a forward-facing simulation of a **context graph** constructed from **Bayesian priors** — that is, from inferences about an actor's likely future actions given observed past behaviour and current context. It represents the *anticipated* context graph that would result from a hypothetical sequence of events, rather than the recorded context graph produced by events that have already occurred.
+
+Intentional graphs are partitioned into a separate named graph and participate in a structured conversation (a *narrative interaction*) with an external agent. The external agent provides events based on content surfaced during the simulation; once the simulation terminates, the results may be merged back as real events into the base context graph.
+
+> **\[OPEN\]** The Bayesian framing introduces concepts from probability theory that are not yet formally defined elsewhere in this specification. The group should determine whether the intentional graph is a first-class component of the core specification or an extension, and if the former, define the formal model for prior construction, simulation termination, and merge semantics. The relationship to LLM-based inference and agentic AI workflows should be addressed here, as it is likely to be a significant area of member interest.
+
+---
+
+### Knowledge Graph
+
+*Type: Structural component*
+
+A knowledge graph is a **hypergraph** structure focused on direct assertions and indexed analytic computations. In the Context Graph architecture, the knowledge graph is typically computed from the **context graph** and represents a more accessible, queryable view of processed information. It is generally more topically oriented and more publicly accessible than the underlying context graph.
+
+The distinction between the context graph and the knowledge graph reflects a separation of concerns: the context graph is a faithful, append-only record of events and their provenance; the knowledge graph is a derived, optimised representation for consumption by downstream systems and queries.
+
+---
+
+### Reification
+
+*Type: Structural component*
+
+**Semantic definition:** A reification is a set of assertions made about a given statement, rather than about the entities the statement describes. Where a ground assertion says "A relates to B", a reification says "the assertion that A relates to B has the following properties." This allows an assertion — a relationship or an entity–value binding — to itself be the subject of further description.
+
+**Role in this architecture:** Reifications are the mechanism by which the context graph records the event that caused a ground assertion to be added to the graph. Every ground assertion has an associated reification that captures the **context event** responsible for its creation. This transforms the graph from a static collection of facts into a hypergraph event log that records not just what is true but *why* and *when* it came to be true, enabling post-hoc analysis of the event trail.
+
+In RDF 1.2 terms, reification is supported natively through the annotation (`{| |}`) syntax. Equivalent mechanisms exist in LPG systems, though with varying expressivity.
+
+See also: **Context Event**, **Hypergraph**.
+
+---
+
+### Report
+
+*Type: Structural component*
+
+A report is an artefact generated when **validation** of a **signal** or **context event** fails. Reports are published as named graphs and are themselves part of the **context graph** — they are not discarded or logged externally. This ensures that failures are first-class citizens of the event trail and are subject to the same provenance, queryability, and audit guarantees as successful events.
+
+Reports may be generated at multiple severity levels (error, warning, informational), with severity configured per constraint. A report may itself initiate further system actions through the **Context Graph Control Plane**, for example by triggering a notification, escalating to a human decision point, or requesting additional **verifiable credentials**.
+
+---
+
+### Resolution Trace
+
+*Type: Structural component* **\[PLACEHOLDER\]**
+
+A resolution trace is the persistent artefact produced by a **context graph** instance after that instance terminates. It records the full history of how contextual misalignments at a **boundary** were identified, measured, and resolved (or left unresolved) during the lifetime of the instance. Resolution traces are the primary artefact for auditable replay and post-hoc analysis.
+
+> **\[OPEN\]** The group should define the formal structure of a resolution trace: what fields are mandatory, what the serialisation format is, how traces compose across nested **holons**, and how they are linked in the **Coherence Protocol**. The resolution trace is referenced in multiple entries (Coherence Protocol, Intent, Decision Interface) and must be fully specified before those entries can be considered normative.
+
+---
+
+## Part 3: Operational Concepts
+
+### Agency
+
+*Type: Operational concept*
+
+The context system is a deterministic **state machine**. It does not model external agency directly — it cannot, in any meaningful sense, infer the autonomous intent of an external actor from the events it receives. What it perceives of the outside world is limited to authenticated **signals**; everything beyond those signals is, from the state machine's perspective, unknown.
+
+What the system *can* do is encode behavioural differentiation into **constraints** and **rules**: the behaviour of the system in response to an event may vary depending on the identity and role encoded in the **verifiable credentials** accompanying that event. The actor Jane and the actor John may trigger different rule pathways, different validation outcomes, and different downstream actions — not because the system models their agency, but because the system encodes the *structural consequences* of their identity in its rule set.
+
+This reactive but evolvable model is a deliberate design choice. It avoids the opacity of agent-internal state while still permitting context-sensitive behaviour.
+
+> **\[OPEN\]** The group should address the relationship between this non-agentic model and the AI/ML systems integration use cases identified in the group charter, particularly where LLM-based inference systems are expected to interact with the control plane. The **Intentional Graph** entry is the current locus for this discussion.
+
+---
+
+### Authentication Event
+
+*Type: Operational concept* **\[PLACEHOLDER\]**
+
+An authentication event is a **signal** whose content is a cryptographic credential submission. It initiates or renews a verified session within the **Context Graph Control Plane**, establishing the identity and permission scope of the submitting actor. Subsequent signals are evaluated against the active authentication context until it expires or is revoked.
+
+> **\[OPEN\]** The group should specify the relationship between authentication events and the W3C Verifiable Credentials Data Model (VC-DATA-MODEL). If this architecture adopts VC as the credential standard, that alignment should be stated normatively; if it diverges, the reasons should be documented.
+
+---
+
+### Coherence Protocol
+
+*Type: Operational concept*
+
+The Coherence Protocol is the specification governing how multiple **context graphs**, operating across multiple **system boundaries**, compose into a coherent multi-boundary representation. It is distinct from the **Context Graph** data model: where the context graph describes a single boundary in isolation, the Coherence Protocol describes how boundaries connect, how **coherence** gaps propagate across them, and how **resolution traces** link to form an auditable cross-system record.
+
+The Coherence Protocol defines:
+
+- How coherence measurements at one boundary affect coherence assessments at adjacent boundaries.
+- How **holons** at different levels of the hierarchy exchange resolution status.
+- The format and required fields of the resolution trace records that survive boundary crossings.
+- Safe stopping conditions: what the system must do when coherence cannot be restored to a sufficient level for action.
+
+---
+
+### Constraint
+
+*Type: Operational concept*
+
+A constraint is a formal restriction on the permissible states of an entity as represented within a graph. Constraints are evaluated when a change request (an incoming validated **signal**) is applied to the graph. If the resulting state satisfies all applicable constraints, the change is logged as a **context event** and any applicable **rules** are initiated. If the resulting state violates one or more constraints, a **report** is generated and the change is not committed to the graph.
+
+In this specification, constraints are expressed using **SHACL** shapes. The structural and semantic properties of SHACL make it well-suited for constraint expression across both RDF-native and (with adaptation) LPG-based systems.
+
+---
+
+### Context Graph Control Plane
+
+*Type: Operational concept*
+
+The control plane is the interface layer that connects the **context graph**'s **state machine** to external events and systems. It is responsible for all state-modifying operations on the graph and enforces the authentication, validation, and governance requirements of the architecture.
+
+The control plane operates across four principal control points:
+
+1. **Event ingestion:** Receives external **signals**, performs initial routing, and routes them to the appropriate state machine instance. This layer may distribute signals across multiple parallel context graph instances depending on content type or origin.
+2. **Authentication and validation:** Evaluates incoming signals against active **verifiable credential** sessions and applicable **constraints**. Determines whether a signal may proceed to the event log.
+3. **Rule execution:** When a validated event triggers applicable **rules**, the control plane executes those rules and commits the resulting new content to the graph.
+4. **Report publication:** When validation fails, the control plane generates and publishes a **report** as a named graph and may initiate configurable downstream actions.
+
+The control plane design is intended to scale horizontally: because each state machine handles a specific type of context, multiple instances can operate in parallel without shared mutable state.
+
+---
+
+### Decision Interface
+
+*Type: Operational concept*
+
+The decision interface is a neutral contract between the **context graph**'s **coherence** measurements and any external decision model (rules engine, ML classifier, human workflow, policy evaluator, or other). It is intentionally agnostic to the choice of decision framework.
+
+The decision interface specifies:
+
+- **Inputs to the decision model:** the uncertainty vector (a structured representation of measured coherence gaps), applicable policy parameters, and boundary metadata from the current **context graph** instance.
+- **Outputs from the decision model:** a required protocol action (proceed, request clarification, escalate, halt) and optional diagnostic flags.
+- **Audit requirements:** what must be recorded in the **resolution trace** to support auditable replay of the decision, independent of the decision model used.
+
+The separation of the decision interface from the context graph data model ensures that the governance logic of a specific deployment does not contaminate the portability of the context graph representation.
+
+---
+
+### Intent
+
+*Type: Operational concept*
+
+Intent is an actor's pragmatic purpose at a **boundary** interaction — the goal they are trying to accomplish through the **signals** they are submitting. Intent is distinct from semantics: where semantics defines terms with the goal of shared consistency across authorities, intent is local and individual — it reflects a specific actor's vocabulary, understanding, and purpose at a specific moment.
+
+Intent may be:
+
+- **Explicit** — directly stated by the actor in the signal content.
+- **Inferred** — derived by the system from observable evidence in the event trail.
+- **Composed** — assembled from multiple sources including stated user intent, system designer intent encoded in the rule set, and subsystem-level behavioural constraints.
+
+When intent is consequential to the resolution of a **coherence** gap and cannot be resolved automatically, it should be recorded in the **resolution trace** — capturing not just what was decided but what intent was attributed to the actor at the time of decision.
+
+For the forward-looking, simulation-based treatment of intent see **Intentional Graph**.
+
+---
+
+### Rule
+
+*Type: Operational concept*
+
+A rule is a forward-chaining inference that produces new graph content when a validated state change satisfies a defined pattern within the **context graph**. Rules are initiated after **validation** succeeds; they do not fire on invalid state transitions.
+
+Rules may:
+
+- Create additional **assertions** (new facts derived from the event).
+- Annotate existing assertions with derived properties.
+- Initiate interactions with external services through a defined protocol exposed via the **Context Graph Control Plane**.
+
+Rules are expressed in this specification using **SHACL** `sh:SPARQLRule` constructs. In SPARQL terms, a rule body is a CONSTRUCT query evaluated against the current graph state, with the focus node bound to the entity affected by the triggering event.
+
+---
+
+### Shapes and SHACL
+
+*Type: Operational concept*
+
+A shape is a structural — rather than purely semantic — representation of the constraints and rules applicable to specific nodes and their contexts within a graph. Shapes define permissible graph configurations rather than asserting ontological class membership; they are closed-world by default, making them suitable for validation.
+
+The Shape Constraint Language (**SHACL**) is a W3C Recommendation for constructing and evaluating shapes against RDF graphs. In this specification, SHACL is the primary language for the **Context Graph Control Plane**: constraints are expressed as `sh:NodeShape` and `sh:PropertyShape` instances; rules are expressed as `sh:SPARQLRule` constructs.
+
+SHACL's design principles are largely isomorphic to the constraint needs of LPG-based systems, and the shapes model described here can be adapted with minor modification to LPG environments, though the specific syntax will differ.
+
+> **\[OPEN\]** The group should issue a formal position on the intended level of SHACL conformance required by the specification: SHACL Core, SHACL-SPARQL, or SHACL Advanced Features (which includes rules and non-validating constraints). The answer determines the minimum viable engine for conformant implementations.
+
+---
+
+### State Machine
+
+*Type: Operational concept*
+
+The context system is a deterministic state machine: it accepts events from external systems, evaluates them against defined **constraints**, and either commits the result (triggering applicable **rules**) or rejects it (generating a **report**). No state transition occurs that is not triggered by an authenticated, validated event.
+
+The state machine is deliberately mechanistic. It does not model internal motivation or autonomous decision-making; those concerns belong to external systems that interact with the control plane. The state machine can, however, invoke external agentic systems as part of rule execution through the defined protocol of the **Context Graph Control Plane**. The design intent is that the context system itself remains auditable, deterministic, and reproducible — a property that would be compromised by internal agency.
+
+---
+
+### Validation
+
+*Type: Operational concept*
+
+Validation is the process of evaluating a proposed state change — an incoming authenticated **signal** — against the **constraints** and **shapes** defined for the applicable **context** within the **context graph**. Validation is binary at the transaction level: a proposed change either satisfies all applicable constraints (and proceeds to the event log) or fails (and generates a **report**).
+
+Validation in this architecture is performed by the **Context Graph Control Plane** against SHACL shapes applied to the relevant subgraph. A validation pass does not imply semantic correctness in the open-world sense; it implies structural and relational conformance as defined by the closed-world shape model.
+
+> **\[OPEN\]** The relationship between validation in this architecture and the W3C SHACL Recommendation's definition of *conformance* should be specified precisely. In particular, the group should address how the three-value logic of SHACL (conformant, non-conformant, indeterminate) maps onto the binary commit/report model described here.
+
+---
+
+### Verifiable Credentials
+
+*Type: Operational concept*
+
+The context graph is not an open or public triple store. All modifications flow through the **Context Graph Control Plane**, which enforces authentication and access control. This governance layer relies on **verifiable credentials** — cryptographic certificates that establish the identity, role, and permission scope of an actor submitting **signals** to the system.
+
+Credentials are submitted as part of an **authentication event**. They remain active until they expire according to their own validity terms or are invalidated by a validation failure for a credential-sensitive constraint. For a transaction-class interaction (such as a bank payment), the credential may additionally enforce session continuity: the same credential must remain active across all events in the transaction.
+
+> **\[OPEN\]** This specification uses the term *verifiable credentials* in a sense compatible with the W3C Verifiable Credentials Data Model (VC-DATA-MODEL 2.0), but the precise alignment — including which VC proof mechanisms are required, which optional features are in scope, and how VC expiry maps to session termination — should be specified normatively before this section is considered stable.
+
+---
+
+## Appendix A: Terms Under Discussion
+
+The following terms have been raised in group discussions but do not yet have agreed definitions. They are listed here to track open items.
+
+| Term | Status | Notes |
+|------|--------|-------|
+| **Data Fabric** | Under discussion | Used once in the Context Graph entry. Carries significant vendor-specific connotations (IBM, Informatica, Microsoft). The group should either define it precisely or replace it with less loaded vocabulary. |
+| **Event Trail** | Needs definition | Referenced in Context Event. Requires a formal definition specifying structure, queryability, and retention. |
+| **Coherence Score** | Proposed | Would formalise the quantitative dimension of the Coherence definition. Requires a measurement model. |
+| **Session** | Needs definition | Implied by Verifiable Credentials but not yet a first-class term. |
+| **Narrative Interaction** | Needs definition | Used in Intentional Graph. Requires clarification of whether this is a human-facing or system-facing protocol. |
+
+---
+
+## Appendix B: Relationship to Related Standards
+
+The following existing standards are relevant to this specification. Alignment positions are noted where they exist; **\[OPEN\]** marks those that the group has not yet formally addressed.
+
+| Standard | Relevance | Alignment Status |
+|----------|-----------|-----------------|
+| RDF 1.2 / Turtle 1.2 | Primary graph serialisation; annotation syntax for reification | **Core dependency** |
+| SHACL 1.2 | Constraint and rule language for the control plane | **Core dependency** |
+| W3C Verifiable Credentials Data Model 2.0 | Authentication and credential model | **\[OPEN\]** |
+| W3C PROV-O | Provenance vocabulary; potentially relevant to reification and event trail | **\[OPEN\]** |
+| W3C SPARQL 1.2 | Query language; relevant to knowledge graph layer and resolution trace queryability | **\[OPEN\]** |
+| OpenCypher / LPG | LPG compatibility layer | Acknowledged; formal mapping not yet specified |
+| W3C ODRL | Policy expression; potentially relevant to boundary and access control definitions | **\[OPEN\]** |
+| ISO 5087 | Information model | **\[OPEN\]** — Four Facets Model should be compared |
+
+---
+
+*Last updated: 2026-03-07. Maintained by the W3C Context Graph Community Group.*
