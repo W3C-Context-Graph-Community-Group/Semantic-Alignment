@@ -258,6 +258,14 @@ An authentication event is a **signal** whose content is a cryptographic credent
 
 ---
 
+### Utterance Event
+
+*Type: Operational concept* **\[PLACEHOLDER\]**
+
+An utterance event is a **signal** whose content is a statement made by an actor as part of a conversation or narrative. A transcript can be rendered as a context graph where each utterance is a context event. 
+
+---
+
 ### Coherence Protocol
 
 *Type: Operational concept*
