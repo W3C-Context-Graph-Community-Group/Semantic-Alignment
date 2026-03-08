@@ -1,0 +1,1246 @@
+# Context Graph — ContextEvent Examples (Turtle 1.2)
+#
+# Status:  Non-normative working examples — v0.1
+# Group:   W3C Context Graph Community Group
+# Schema:  context-event-shapes.ttl
+#
+# Purpose
+# -------
+# This file provides conformant and non-conformant examples illustrating the
+# ContextEvent SHACL 1.2 schema.  Each example is self-contained and can be
+# validated independently against context-event-shapes.ttl.
+#
+# RDF 1.2 annotation syntax used
+# --------------------------------
+# Two equivalent notations are demonstrated:
+#
+#   (A)  Inline annotation  {| ... |}
+#        The reifier node is anonymous and created implicitly:
+#
+#            ex:S  ex:p  ex:O
+#                {| cg:producedByEvent ex:Evt |} .
+#
+#   (B)  Named reifier  ~ex:ReifierName
+#        The reifier has an explicit IRI, enabling direct cross-reference:
+#
+#            ex:S  ex:p  ex:O  ~ex:ReifierName .
+#            ex:ReifierName  cg:producedByEvent  ex:Evt .
+#
+# Both forms produce an RDF 1.2 reifier node shaped by
+# cgsh:AssertionAnnotationShape.  Named reifiers (B) are preferred where the
+# reifier itself needs to be referenced from other triples (e.g. linking a
+# ResolutionTrace to a specific annotation).
+#
+# File structure
+# --------------
+#  §1  Shared vocabulary stubs  (agents, holons, credentials, concepts)
+#  §2  CONFORMANT examples
+#       C-01  DataEvent           — inline {| |} annotation
+#       C-02  SpatialEvent        — inline {| |} annotation
+#       C-03  PolicyEvent         — named reifier ~ex:R syntax
+#       C-04  AuthEvent           — named reifier ~ex:R syntax
+#       C-05  RelationEvent       — inline {| |} with composed intent
+#       C-06  BoundaryEvent       — named reifier, multi-assertion
+#  §3  NON-CONFORMANT examples  (each targets a specific violation)
+#       NC-01  Missing mandatory facet          (cg:contextFacet absent)
+#       NC-02  Temporal ordering violation      (endedAtTime < startedAtTime)
+#       NC-03  Expired credential session       (commit after sessionValidUntil)
+#       NC-04  SpatialEvent without coordinates (conditional sh:then violation)
+#       NC-05  Non-SpatialEvent with coordinates(conditional sh:else violation)
+#       NC-06  Invalid eventStatus assertion    (sh:in violation)
+#       NC-07  Annotation missing producedByEvent (reifierShape violation)
+#       NC-08  PolicyEvent missing modifiedPolicy (conditional sh:then violation)
+#       NC-09  Coherence score out of range     (sh:maxInclusive violation)
+#       NC-10  AuthEvent missing credentialLifecycleStatus
+
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+@prefix prov:     <http://www.w3.org/ns/prov#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix geo:      <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix sh:       <http://www.w3.org/ns/shacl#> .
+@prefix cg:       <https://w3c-context-graph-community-group.github.io/ns/context-graph#> .
+@prefix cgsh:     <https://w3c-context-graph-community-group.github.io/ns/context-graph/shapes#> .
+@prefix ex:       <https://example.org/cg-demo/> .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §1  SHARED VOCABULARY STUBS
+#     Minimal declarations of agents, holons, credentials, and concept scheme
+#     entries referenced across all examples.  In a real deployment these would
+#     live in separate named graphs.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Agents ────────────────────────────────────────────────────────────────────
+
+ex:IngestServiceA  a prov:Agent ;
+    rdfs:label "Ingest service account A" .
+
+ex:PolicyAdminBot  a prov:Agent ;
+    rdfs:label "Policy administration bot" .
+
+ex:FieldSensorUnit7  a prov:Agent ;
+    rdfs:label "Field sensor unit 7 (IoT device)" .
+
+ex:AuthBroker  a prov:Agent ;
+    rdfs:label "Authentication broker" .
+
+ex:DataMigrationJob  a prov:Agent ;
+    rdfs:label "Scheduled data migration job" .
+
+ex:BoundaryController  a prov:Agent ;
+    rdfs:label "Holon boundary controller" .
+
+# ── Holons ────────────────────────────────────────────────────────────────────
+
+ex:HolonExternalFeed   a owl:NamedIndividual ;
+    rdfs:label "External data feed holon" .
+
+ex:HolonContextGraph01 a owl:NamedIndividual ;
+    rdfs:label "Context graph instance 01" .
+
+ex:HolonKnowledgeLayer a owl:NamedIndividual ;
+    rdfs:label "Knowledge graph layer holon" .
+
+ex:HolonFieldOps       a owl:NamedIndividual ;
+    rdfs:label "Field operations holon" .
+
+# ── Boundaries ────────────────────────────────────────────────────────────────
+
+ex:BoundaryIngestFeed   rdfs:label "Ingest feed → CG01" .
+ex:BoundaryFieldOps     rdfs:label "Field ops → CG01" .
+ex:BoundaryPolicyAdmin  rdfs:label "Policy admin → CG01" .
+ex:BoundaryAuthBroker   rdfs:label "Auth broker → CG01" .
+ex:BoundaryMigration    rdfs:label "Migration job → CG01" .
+ex:BoundaryHolonCtrl    rdfs:label "Boundary controller → CG01" .
+
+# ── Active credential sessions ────────────────────────────────────────────────
+# sessionValidUntil is 2026-12-31 for all active sessions so that commit-time
+# checks pass.  NC-03 uses an expired session to trigger a violation.
+
+ex:CredIngestA  a owl:NamedIndividual ;
+    rdfs:label "Ingest service credential (active)" .
+
+ex:CredPolicyAdmin  a owl:NamedIndividual ;
+    rdfs:label "Policy admin credential (active)" .
+
+ex:CredFieldSensor  a owl:NamedIndividual ;
+    rdfs:label "Field sensor credential (active)" .
+
+ex:CredAuthBroker  a owl:NamedIndividual ;
+    rdfs:label "Auth broker credential (active)" .
+
+ex:CredMigration  a owl:NamedIndividual ;
+    rdfs:label "Migration credential (active)" .
+
+ex:CredExpired  a owl:NamedIndividual ;
+    rdfs:label "Expired credential (used in NC-03)" .
+
+ex:CredBoundaryCtrl  a owl:NamedIndividual ;
+    rdfs:label "Boundary controller credential (active)" .
+
+# ── SKOS event classification concepts ────────────────────────────────────────
+# Stub entries; full ConceptScheme to be defined separately.
+
+ex:ClassDataChange      a skos:Concept ; skos:prefLabel "Data change" .
+ex:ClassSpatialReading  a skos:Concept ; skos:prefLabel "Spatial reading" .
+ex:ClassPolicyChange    a skos:Concept ; skos:prefLabel "Policy change" .
+ex:ClassAuthLifecycle   a skos:Concept ; skos:prefLabel "Auth lifecycle" .
+ex:ClassRelationChange  a skos:Concept ; skos:prefLabel "Relation change" .
+ex:ClassBoundaryChange  a skos:Concept ; skos:prefLabel "Boundary change" .
+
+# ── Domain vocabulary stubs ───────────────────────────────────────────────────
+
+ex:SensorOntology        a owl:Ontology ; rdfs:label "Sensor ontology" .
+ex:TemperatureReading    a owl:Class    ; rdfs:label "Temperature reading" .
+ex:HumidityReading       a owl:Class    ; rdfs:label "Humidity reading" .
+ex:DeviceOntology        a owl:Ontology ; rdfs:label "Device ontology" .
+ex:GeoFeatureOntology    a owl:Ontology ; rdfs:label "GeoFeature ontology" .
+ex:PolicyOntology        a owl:Ontology ; rdfs:label "Policy ontology" .
+ex:AccessControlPolicy   a owl:Class    ; rdfs:label "Access control policy" .
+ex:HolonOntology         a owl:Ontology ; rdfs:label "Holon ontology" .
+ex:HolonMembership       a owl:Class    ; rdfs:label "Holon membership" .
+
+ex:ConstraintShape-ReadAccess  a sh:NodeShape ;
+    rdfs:label "Read-access constraint shape" .
+
+ex:TargetEntity   rdfs:label "Target entity" .
+ex:SensorStation7 rdfs:label "Sensor station 7" .
+ex:PolicyObject-ReadAccess  rdfs:label "Read access policy object" .
+ex:PolicyVersion-ReadAccess-v1  rdfs:label "Read access policy v1" .
+ex:SourceEntity   rdfs:label "Source entity (migration)" .
+ex:TargetEntityB  rdfs:label "Target entity B" .
+ex:SubsystemX     rdfs:label "Subsystem X" .
+ex:HolonNewMember rdfs:label "Newly admitted holon member" .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §2  CONFORMANT EXAMPLES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────────────────────
+# C-01  DataEvent — inline {| |} annotation
+#
+# The simplest conformant event: a temperature reading ingested from an external
+# feed.  All four facets are present.  The ground assertion uses the inline
+# annotation syntax; the reifier is anonymous.
+#
+# Demonstrates:
+#   • Core ContextEventShape (all mandatory properties)
+#   • Inline {| |} annotation → shaped by cgsh:AssertionAnnotationShape
+#   • FacetCompletenessRule → cg:facetCompleteness 4
+#   • EventStatusRule → cg:eventStatus cg:StatusValidated
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-C01  a cg:DataEvent ;
+
+    cg:localId               "evt-c01-temperature-reading" ;
+
+    prov:generatedAtTime     "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+    prov:startedAtTime       "2026-03-08T09:14:20Z"^^xsd:dateTimeStamp ;
+    prov:endedAtTime         "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId             ex:BoundaryIngestFeed ;
+        cg:sourceHolon            ex:HolonExternalFeed ;
+        cg:targetHolon            ex:HolonContextGraph01 ;
+        cg:boundaryCoherenceScore "0.95"^^xsd:decimal ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent   "42.7" ;
+        dcterms:format  <https://www.iana.org/assignments/media-types/text/plain> ;
+        cg:contentHash  "a3f1b2c9d4e5f678901234567890abcd" ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:SensorOntology ;
+        cg:primaryConcept    ex:TemperatureReading ;
+        rdfs:label           "Temperature reading" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape          cgsh:DataFacetShape ;
+        cg:constraintEvaluationRecord [
+            cg:evaluatedConstraint  cgsh:DataFacetShape ;
+            cg:evaluationResult     cg:ResultPassed ;
+        ] ;
+    ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "0.92"^^xsd:decimal ;
+        cg:resolutionStatus   cg:Resolved ;
+        cg:prerequisite       ex:CredIngestA ;
+    ] .
+
+# Ground assertion — inline {| |} annotation syntax.
+# The anonymous reifier is validated by cgsh:AssertionAnnotationShape.
+
+ex:TargetEntity  cg:temperature  "42.7"
+    {| cg:producedByEvent    ex:Event-C01 ;
+       cg:assertedAt         "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 ;
+       cg:coherenceContribution "0.92"^^xsd:decimal |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# C-02  SpatialEvent — inline {| |} annotation
+#
+# An IoT field sensor reports a geo-located humidity reading.
+# Because the event is typed cg:SpatialEvent, the sh:if/sh:then conditional
+# requires a cg:spatialContext node with geo:lat and geo:long.
+#
+# Demonstrates:
+#   • sh:if/sh:then conditional (spatial branch)
+#   • cgsh:SpatialContextShape (lat/long range constraints)
+#   • Multiple {| |} annotations on different triples from the same event
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-C02  a cg:SpatialEvent ;
+
+    cg:localId               "evt-c02-humidity-field" ;
+
+    prov:generatedAtTime     "2026-03-08T10:05:00Z"^^xsd:dateTimeStamp ;
+    prov:startedAtTime       "2026-03-08T10:04:58Z"^^xsd:dateTimeStamp ;
+    prov:endedAtTime         "2026-03-08T10:05:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:FieldSensorUnit7 ;
+    cg:eventClassification   ex:ClassSpatialReading ;
+
+    cg:producedAssertion     ex:SensorStation7 ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredFieldSensor ;
+        cg:credentialHolder   ex:FieldSensorUnit7 ;
+        cg:sessionValidFrom   "2026-03-08T06:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId             ex:BoundaryFieldOps ;
+        cg:sourceHolon            ex:HolonFieldOps ;
+        cg:targetHolon            ex:HolonContextGraph01 ;
+        cg:boundaryCoherenceScore "0.87"^^xsd:decimal ;
+    ] ;
+
+    # Spatial context — required by the cg:SpatialEvent conditional
+    cg:spatialContext [
+        geo:lat                       "51.5074"^^xsd:decimal ;
+        geo:long                      "-0.1278"^^xsd:decimal ;
+        cg:spatialPrecisionMetres     "5.0"^^xsd:decimal ;
+        cg:spatialReferenceSystem     <http://www.opengis.net/def/crs/EPSG/0/4326> ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent   "78.3" ;
+        dcterms:format  <https://www.iana.org/assignments/media-types/text/plain> ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:SensorOntology ;
+        cg:primaryConcept    ex:HumidityReading ;
+        rdfs:label           "Relative humidity reading" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape  cgsh:DataFacetShape ;
+    ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "0.88"^^xsd:decimal ;
+        cg:resolutionStatus   cg:Resolved ;
+        cg:prerequisite       ex:CredFieldSensor ;
+        cg:prerequisite       <http://www.opengis.net/def/crs/EPSG/0/4326> ;
+    ] .
+
+# Two ground assertions from the same event, both annotated inline.
+# Note that a single event may produce multiple assertions.
+
+ex:SensorStation7  cg:humidityPercent  "78.3"
+    {| cg:producedByEvent    ex:Event-C02 ;
+       cg:assertedAt         "2026-03-08T10:05:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:FieldSensorUnit7 ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+ex:SensorStation7  geo:lat  "51.5074"^^xsd:decimal
+    {| cg:producedByEvent    ex:Event-C02 ;
+       cg:assertedAt         "2026-03-08T10:05:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:FieldSensorUnit7 ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# C-03  PolicyEvent — named reifier ~ex:R syntax
+#
+# The policy administration bot modifies a read-access constraint shape.
+# The named reifier syntax is preferred here because the ResolutionTrace (stub)
+# needs to reference the specific annotation node that recorded this change.
+#
+# Demonstrates:
+#   • Named reifier syntax:  ex:Subject  ex:p  ex:O  ~ex:ReifierIRI .
+#   • cgsh:PolicyChangeRequiredShape (conditional sh:then for PolicyEvent)
+#   • Reifier IRI used as a direct target in a separate triple
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-C03  a cg:PolicyEvent ;
+
+    cg:localId               "evt-c03-policy-update" ;
+
+    prov:generatedAtTime     "2026-03-08T11:30:00Z"^^xsd:dateTimeStamp ;
+    prov:startedAtTime       "2026-03-08T11:29:55Z"^^xsd:dateTimeStamp ;
+    prov:endedAtTime         "2026-03-08T11:30:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:PolicyAdminBot ;
+    cg:eventClassification   ex:ClassPolicyChange ;
+
+    cg:producedAssertion     ex:PolicyObject-ReadAccess ;
+
+    # PolicyEvent-specific fields (cgsh:PolicyChangeRequiredShape)
+    cg:modifiedPolicy        ex:PolicyObject-ReadAccess ;
+    cg:priorPolicyVersion    ex:PolicyVersion-ReadAccess-v1 ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredPolicyAdmin ;
+        cg:credentialHolder   ex:PolicyAdminBot ;
+        cg:sessionValidFrom   "2026-03-08T11:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopePolicyWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryPolicyAdmin ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent   "{ op: 'replace', path: '/minCount', value: 2 }" ;
+        dcterms:format  <https://www.iana.org/assignments/media-types/application/json-patch+json> ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:PolicyOntology ;
+        cg:primaryConcept    ex:AccessControlPolicy ;
+        rdfs:label           "Read-access policy update" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape  cgsh:ContextEventShape ;
+    ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "1.0"^^xsd:decimal ;
+        cg:resolutionStatus   cg:Resolved ;
+    ] .
+
+# Ground assertion using named reifier syntax.
+# ex:Reifier-C03 is an explicit IRI; it can be referenced from other triples.
+
+ex:PolicyObject-ReadAccess  cg:policyVersion  "v2"
+    ~ex:Reifier-C03 .
+
+ex:Reifier-C03
+    cg:producedByEvent    ex:Event-C03 ;
+    cg:assertedAt         "2026-03-08T11:30:00Z"^^xsd:dateTimeStamp ;
+    cg:assertionAuthority ex:PolicyAdminBot ;
+    cg:assertionGraph     ex:HolonContextGraph01 .
+
+# The named reifier can now be cross-referenced: here from a stub resolution
+# trace to record exactly which annotation captured the policy change.
+
+ex:ResolutionTrace-C03
+    a cg:ResolutionTrace ;
+    cg:traceId      ex:ResolutionTrace-C03 ;
+    cg:traceEvents  ex:Event-C03 ;
+    cg:traceOutcome cg:TraceResolved ;
+    cg:trackedAnnotation  ex:Reifier-C03 .   # ← direct named-reifier reference
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# C-04  AuthEvent — named reifier syntax
+#
+# The authentication broker submits a credential for a new session.
+# AuthEvents may have a minimal data payload; the credential itself is the
+# primary content.  Named reifier used so the session record can reference
+# the specific annotation that established the session.
+#
+# Demonstrates:
+#   • cgsh:AuthEventRequiredShape (cg:credentialLifecycleStatus mandatory)
+#   • cg:CredentialSubmitted lifecycle status
+#   • Named reifier cross-referenced from the authentication context itself
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-C04  a cg:AuthEvent ;
+
+    cg:localId               "evt-c04-session-open" ;
+
+    prov:generatedAtTime     "2026-03-08T08:00:01Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:AuthBroker ;
+    cg:eventClassification   ex:ClassAuthLifecycle ;
+
+    cg:credentialLifecycleStatus  cg:CredentialSubmitted ;
+
+    # AuthEvents still require producedAssertion — here it is the session record.
+    # [OPEN] The group should decide if cg:AuthEvent warrants a minCount 0 exemption.
+    cg:producedAssertion     ex:Session-C04 ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredAuthBroker ;
+        cg:credentialHolder   ex:AuthBroker ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeAuthWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryAuthBroker ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent  "credential-submission-payload" ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:DeviceOntology ;
+        cg:primaryConcept    ex:AuthBroker ;
+        rdfs:label           "Session open" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape  cgsh:ContextEventShape ;
+    ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "1.0"^^xsd:decimal ;
+        cg:resolutionStatus   cg:Resolved ;
+    ] .
+
+# Named reifier for the session assertion.
+ex:Session-C04  cg:sessionStatus  cg:CredentialSubmitted
+    ~ex:Reifier-C04 .
+
+ex:Reifier-C04
+    cg:producedByEvent    ex:Event-C04 ;
+    cg:assertedAt         "2026-03-08T08:00:01Z"^^xsd:dateTimeStamp ;
+    cg:assertionAuthority ex:AuthBroker ;
+    cg:assertionGraph     ex:HolonContextGraph01 .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# C-05  RelationEvent — inline {| |} with composed intent
+#
+# A data migration job asserts a new relationship between two entities.
+# The intent is recorded as cg:ComposedIntent because it derives from both
+# the job's configuration and a subsystem constraint.
+#
+# Demonstrates:
+#   • cg:RelationEvent subtype
+#   • cgsh:IntentShape with intentEvidence linking back to prior events
+#   • cg:precedingEvent trail link
+#   • Inline {| |} on a relationship triple
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-C05  a cg:RelationEvent ;
+
+    cg:localId               "evt-c05-migration-relation" ;
+
+    prov:generatedAtTime     "2026-03-08T13:00:10Z"^^xsd:dateTimeStamp ;
+    prov:startedAtTime       "2026-03-08T13:00:08Z"^^xsd:dateTimeStamp ;
+    prov:endedAtTime         "2026-03-08T13:00:10Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:DataMigrationJob ;
+    cg:eventClassification   ex:ClassRelationChange ;
+
+    cg:producedAssertion     ex:TargetEntityB ;
+
+    # Event trail — this event follows C-01 in the same session
+    cg:precedingEvent        ex:Event-C01 ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredMigration ;
+        cg:credentialHolder   ex:DataMigrationJob ;
+        cg:sessionValidFrom   "2026-03-08T13:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryMigration ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent  "source=ex:SourceEntity target=ex:TargetEntityB rel=cg:migratedFrom" ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:DeviceOntology ;
+        cg:primaryConcept    ex:HolonMembership ;
+        rdfs:label           "Migration source–target relationship" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape  cgsh:ContextEventShape ;
+    ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "0.79"^^xsd:decimal ;
+        cg:resolutionStatus   cg:PartiallyResolved ;
+
+        # Composed intent: derived from job config + subsystem constraint
+        cg:attributedIntent [
+            cg:intentType         cg:ComposedIntent ;
+            cg:intentDescription  "Migrate source–target association per job config and subsystem constraint" ;
+            cg:intentEvidence     ex:Event-C01 ;         # prior event in the trail
+            cg:intentEvidence     ex:SubsystemX ;        # subsystem constraint source
+        ] ;
+    ] .
+
+# Inline annotation on the relationship triple.
+ex:TargetEntityB  cg:migratedFrom  ex:SourceEntity
+    {| cg:producedByEvent    ex:Event-C05 ;
+       cg:assertedAt         "2026-03-08T13:00:10Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:DataMigrationJob ;
+       cg:assertionGraph     ex:HolonContextGraph01 ;
+       cg:coherenceContribution "0.79"^^xsd:decimal |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# C-06  BoundaryEvent — named reifier, multiple assertions
+#
+# The boundary controller adds a new holon member to an existing boundary
+# definition.  Two separate ground assertions are produced and recorded with
+# distinct named reifiers, enabling independent resolution trace references.
+#
+# Demonstrates:
+#   • cg:BoundaryEvent subtype
+#   • Multiple cg:producedAssertion values with distinct named reifiers
+#   • Both assertions referencing the same event
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-C06  a cg:BoundaryEvent ;
+
+    cg:localId               "evt-c06-boundary-membership" ;
+
+    prov:generatedAtTime     "2026-03-08T14:00:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:BoundaryController ;
+    cg:eventClassification   ex:ClassBoundaryChange ;
+
+    # Two assertions produced — membership and boundary update record
+    cg:producedAssertion     ex:HolonNewMember ;
+    cg:producedAssertion     ex:BoundaryIngestFeed ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredBoundaryCtrl ;
+        cg:credentialHolder   ex:BoundaryController ;
+        cg:sessionValidFrom   "2026-03-08T14:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeBoundaryWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryHolonCtrl ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent  "newMember=ex:HolonNewMember boundary=ex:BoundaryIngestFeed" ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:HolonOntology ;
+        cg:primaryConcept    ex:HolonMembership ;
+        rdfs:label           "Holon boundary membership update" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape  cgsh:ContextEventShape ;
+    ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "0.98"^^xsd:decimal ;
+        cg:resolutionStatus   cg:Resolved ;
+    ] .
+
+# First named reifier: membership assertion
+ex:HolonNewMember  cg:memberOf  ex:HolonContextGraph01
+    ~ex:Reifier-C06a .
+
+ex:Reifier-C06a
+    cg:producedByEvent    ex:Event-C06 ;
+    cg:assertedAt         "2026-03-08T14:00:00Z"^^xsd:dateTimeStamp ;
+    cg:assertionAuthority ex:BoundaryController ;
+    cg:assertionGraph     ex:HolonContextGraph01 .
+
+# Second named reifier: boundary update record
+ex:BoundaryIngestFeed  cg:memberCount  "5"^^xsd:integer
+    ~ex:Reifier-C06b .
+
+ex:Reifier-C06b
+    cg:producedByEvent    ex:Event-C06 ;
+    cg:assertedAt         "2026-03-08T14:00:00Z"^^xsd:dateTimeStamp ;
+    cg:assertionAuthority ex:BoundaryController ;
+    cg:assertionGraph     ex:HolonContextGraph01 .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §3  NON-CONFORMANT EXAMPLES
+#     Each example below is invalid against context-event-shapes.ttl.
+#     The expected violation is stated in the comment header of each block.
+#     The event IRI carries the prefix "nc-" to make identification easy.
+#
+#     IMPORTANT: these events share no data with the conformant examples above.
+#     Each is self-contained. Validators will report violations on the nc-
+#     events only.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-01  Missing mandatory facet
+#
+# Expected violation:
+#   cgsh:ContextEventShape  sh:property [ sh:path cg:contextFacet ; sh:minCount 1 ]
+#   → "A ContextEvent must have exactly one cg:contextFacet."
+#
+# cg:contextFacet is absent. All other facets are present. The
+# FacetCompletenessRule will derive cg:facetCompleteness 3, causing
+# EventStatusRule to derive cg:eventStatus cg:StatusFailed.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC01  a cg:DataEvent ;
+
+    cg:localId               "evt-nc01-missing-context-facet" ;
+
+    prov:generatedAtTime     "2026-03-08T09:20:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet [
+        cg:rawContent  "55.1" ;
+    ] ;
+
+    cg:meaningFacet [
+        cg:interpretedUnder  ex:SensorOntology ;
+        rdfs:label           "Pressure reading" ;
+    ] ;
+
+    cg:structureFacet [
+        cg:conformsToShape  cgsh:DataFacetShape ;
+    ] .
+
+# ← cg:contextFacet is intentionally absent.
+
+ex:TargetEntity  cg:pressure  "55.1"
+    {| cg:producedByEvent    ex:Event-NC01 ;
+       cg:assertedAt         "2026-03-08T09:20:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-02  Temporal ordering violation
+#
+# Expected violation:
+#   cgsh:ContextEventShape  sh:sparql (temporal ordering check)
+#   → "prov:endedAtTime must not precede prov:startedAtTime."
+#
+# prov:endedAtTime is set to 30 seconds BEFORE prov:startedAtTime.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC02  a cg:DataEvent ;
+
+    cg:localId               "evt-nc02-time-inversion" ;
+
+    prov:generatedAtTime     "2026-03-08T09:30:00Z"^^xsd:dateTimeStamp ;
+    prov:startedAtTime       "2026-03-08T09:30:00Z"^^xsd:dateTimeStamp ;
+    prov:endedAtTime         "2026-03-08T09:29:30Z"^^xsd:dateTimeStamp ;  # ← before start
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "1.0" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "Voltage" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "0.9"^^xsd:decimal ;
+        cg:resolutionStatus  cg:Resolved ;
+    ] .
+
+ex:TargetEntity  cg:voltage  "1.0"
+    {| cg:producedByEvent    ex:Event-NC02 ;
+       cg:assertedAt         "2026-03-08T09:30:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-03  Expired credential session
+#
+# Expected violation:
+#   cgsh:AuthenticationContextShape  sh:sparql (session expiry check)
+#   → "The credential session had expired before this event was committed."
+#
+# prov:generatedAtTime (09:14:22) is after cg:sessionValidUntil (08:00:00)
+# on the same day — the session had already expired.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC03  a cg:DataEvent ;
+
+    cg:localId               "evt-nc03-expired-session" ;
+
+    prov:generatedAtTime     "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;  # after expiry
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredExpired ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T07:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;  # ← expired
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "99.0" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "Pressure" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "0.5"^^xsd:decimal ;
+        cg:resolutionStatus  cg:Unresolved ;
+    ] .
+
+ex:TargetEntity  cg:pressure  "99.0"
+    {| cg:producedByEvent    ex:Event-NC03 ;
+       cg:assertedAt         "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-04  SpatialEvent without coordinates
+#
+# Expected violation:
+#   cgsh:SpatialEventConditional  sh:then  cgsh:SpatialContextRequiredShape
+#   → "A cg:SpatialEvent must carry a cg:spatialContext node."
+#
+# The event is typed cg:SpatialEvent but no cg:spatialContext is present.
+# The sh:if test matches (the node is a SpatialEvent), so sh:then fires and
+# requires cg:spatialContext; it is absent → violation.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC04  a cg:SpatialEvent ;
+
+    cg:localId               "evt-nc04-spatial-no-coords" ;
+
+    prov:generatedAtTime     "2026-03-08T10:10:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:FieldSensorUnit7 ;
+    cg:eventClassification   ex:ClassSpatialReading ;
+    cg:producedAssertion     ex:SensorStation7 ;
+
+    # ← cg:spatialContext intentionally absent
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredFieldSensor ;
+        cg:credentialHolder   ex:FieldSensorUnit7 ;
+        cg:sessionValidFrom   "2026-03-08T06:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryFieldOps ;
+        cg:sourceHolon  ex:HolonFieldOps ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "100.0" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "Altitude" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "0.6"^^xsd:decimal ;
+        cg:resolutionStatus  cg:PartiallyResolved ;
+    ] .
+
+ex:SensorStation7  cg:altitude  "100.0"
+    {| cg:producedByEvent    ex:Event-NC04 ;
+       cg:assertedAt         "2026-03-08T10:10:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:FieldSensorUnit7 ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-05  Non-SpatialEvent with spatial coordinates
+#
+# Expected violation:
+#   cgsh:SpatialEventConditional  sh:else  cgsh:SpatialContextAbsentShape
+#   → "cg:spatialContext should not appear on a ContextEvent not typed cg:SpatialEvent."
+#
+# The event is a plain cg:DataEvent but carries cg:spatialContext.
+# The sh:if test fails (not a SpatialEvent), so sh:else fires and requires
+# cg:spatialContext to be absent (sh:maxCount 0); it is present → violation.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC05  a cg:DataEvent ;   # ← not a SpatialEvent
+
+    cg:localId               "evt-nc05-data-with-spurious-coords" ;
+
+    prov:generatedAtTime     "2026-03-08T10:15:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    # cg:spatialContext present on a non-SpatialEvent → violation
+    cg:spatialContext [
+        geo:lat   "51.5074"^^xsd:decimal ;
+        geo:long  "-0.1278"^^xsd:decimal ;
+    ] ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "7.2" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "pH reading" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "0.9"^^xsd:decimal ;
+        cg:resolutionStatus  cg:Resolved ;
+    ] .
+
+ex:TargetEntity  cg:pH  "7.2"
+    {| cg:producedByEvent    ex:Event-NC05 ;
+       cg:assertedAt         "2026-03-08T10:15:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-06  Invalid cg:eventStatus assertion
+#
+# Expected violation:
+#   cgsh:ContextEventShape  sh:property [ sh:path cg:eventStatus ; sh:in (...) ]
+#   → "cg:eventStatus must be one of cg:StatusValidated, cg:StatusPending,
+#      or cg:StatusFailed."
+#
+# cg:eventStatus is asserted directly with a value outside the sh:in list.
+# In normal operation this property is derived by EventStatusRule; asserting
+# it directly with an invalid value tests the sh:in constraint on the shape.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC06  a cg:DataEvent ;
+
+    cg:localId               "evt-nc06-invalid-status" ;
+
+    prov:generatedAtTime     "2026-03-08T09:45:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:eventStatus           cg:StatusUnknown ;  # ← not in sh:in list
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "0.0" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "Zero reading" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "0.9"^^xsd:decimal ;
+        cg:resolutionStatus  cg:Resolved ;
+    ] .
+
+ex:TargetEntity  cg:zeroReading  "0.0"
+    {| cg:producedByEvent    ex:Event-NC06 ;
+       cg:assertedAt         "2026-03-08T09:45:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-07  Annotation reifier missing cg:producedByEvent
+#
+# Expected violation:
+#   cgsh:AssertionAnnotationShape  sh:property
+#     [ sh:path cg:producedByEvent ; sh:minCount 1 ]
+#   → "Every annotated assertion must link back to the cg:ContextEvent that
+#      produced it."
+#
+# The named reifier ex:Reifier-NC07 omits cg:producedByEvent entirely.
+# This is the core SHACL 1.2 sh:reifierShape test: the shape must be
+# enforced on the reifier node regardless of the triple it annotates.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC07  a cg:DataEvent ;
+
+    cg:localId               "evt-nc07-orphan-reifier" ;
+
+    prov:generatedAtTime     "2026-03-08T09:50:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "3.14" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "Pi approximation" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "0.9"^^xsd:decimal ;
+        cg:resolutionStatus  cg:Resolved ;
+    ] .
+
+# Named reifier is missing cg:producedByEvent → cgsh:AssertionAnnotationShape violation.
+ex:TargetEntity  cg:piValue  "3.14"
+    ~ex:Reifier-NC07 .
+
+ex:Reifier-NC07
+    # cg:producedByEvent intentionally omitted
+    cg:assertedAt         "2026-03-08T09:50:00Z"^^xsd:dateTimeStamp ;
+    cg:assertionAuthority ex:IngestServiceA ;
+    cg:assertionGraph     ex:HolonContextGraph01 .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-08  PolicyEvent missing cg:modifiedPolicy
+#
+# Expected violation:
+#   cgsh:PolicyChangeRequiredShape  sh:property
+#     [ sh:path cg:modifiedPolicy ; sh:minCount 1 ]
+#   → "A cg:PolicyEvent must reference the policy object that was modified."
+#
+# The event is typed cg:PolicyEvent but omits cg:modifiedPolicy.
+# The sh:if test matches, sh:then fires, and the required property is absent.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC08  a cg:PolicyEvent ;
+
+    cg:localId               "evt-nc08-policy-no-target" ;
+
+    prov:generatedAtTime     "2026-03-08T11:45:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:PolicyAdminBot ;
+    cg:eventClassification   ex:ClassPolicyChange ;
+    cg:producedAssertion     ex:PolicyObject-ReadAccess ;
+
+    # ← cg:modifiedPolicy intentionally absent
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredPolicyAdmin ;
+        cg:credentialHolder   ex:PolicyAdminBot ;
+        cg:sessionValidFrom   "2026-03-08T11:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopePolicyWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryPolicyAdmin ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "patch-payload" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:PolicyOntology ; rdfs:label "Policy patch" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:ContextEventShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence "1.0"^^xsd:decimal ;
+        cg:resolutionStatus  cg:Resolved ;
+    ] .
+
+ex:PolicyObject-ReadAccess  cg:policyVersion  "v3"
+    {| cg:producedByEvent    ex:Event-NC08 ;
+       cg:assertedAt         "2026-03-08T11:45:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:PolicyAdminBot ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-09  Coherence score out of range
+#
+# Expected violation:
+#   cgsh:ContextFacetShape  sh:property
+#     [ sh:path cg:measuredCoherence ; sh:maxInclusive "1.0"^^xsd:decimal ]
+#   → "cg:contextFacet must carry a cg:measuredCoherence score between 0.0
+#      and 1.0 inclusive."
+#
+# cg:measuredCoherence is set to 1.5 — outside the [0.0, 1.0] range.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC09  a cg:DataEvent ;
+
+    cg:localId               "evt-nc09-coherence-overflow" ;
+
+    prov:generatedAtTime     "2026-03-08T09:55:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:IngestServiceA ;
+    cg:eventClassification   ex:ClassDataChange ;
+    cg:producedAssertion     ex:TargetEntity ;
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredIngestA ;
+        cg:credentialHolder   ex:IngestServiceA ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeDataWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryIngestFeed ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "255" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:SensorOntology ; rdfs:label "Brightness" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:DataFacetShape ] ;
+
+    cg:contextFacet [
+        cg:measuredCoherence  "1.5"^^xsd:decimal ;  # ← exceeds sh:maxInclusive 1.0
+        cg:resolutionStatus   cg:Resolved ;
+    ] .
+
+ex:TargetEntity  cg:brightness  "255"
+    {| cg:producedByEvent    ex:Event-NC09 ;
+       cg:assertedAt         "2026-03-08T09:55:00Z"^^xsd:dateTimeStamp ;
+       cg:assertionAuthority ex:IngestServiceA ;
+       cg:assertionGraph     ex:HolonContextGraph01 |} .
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# NC-10  AuthEvent missing cg:credentialLifecycleStatus
+#
+# Expected violation:
+#   cgsh:AuthEventRequiredShape  sh:property
+#     [ sh:path cg:credentialLifecycleStatus ; sh:minCount 1 ]
+#   → "A cg:AuthEvent must declare a cg:credentialLifecycleStatus."
+#
+# The event is typed cg:AuthEvent but omits cg:credentialLifecycleStatus.
+# Contrasts with C-04 (conformant) where the same field is present.
+# ───────────────────────────────────────────────────────────────────────────────
+
+ex:Event-NC10  a cg:AuthEvent ;
+
+    cg:localId               "evt-nc10-auth-no-lifecycle" ;
+
+    prov:generatedAtTime     "2026-03-08T08:01:00Z"^^xsd:dateTimeStamp ;
+
+    cg:initiatedBy           ex:AuthBroker ;
+    cg:eventClassification   ex:ClassAuthLifecycle ;
+    cg:producedAssertion     ex:Session-NC10 ;
+
+    # ← cg:credentialLifecycleStatus intentionally absent
+
+    cg:authenticationContext [
+        cg:credentialId       ex:CredAuthBroker ;
+        cg:credentialHolder   ex:AuthBroker ;
+        cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+        cg:sessionValidUntil  "2026-12-31T23:59:59Z"^^xsd:dateTimeStamp ;
+        cg:permissionScope    cg:ScopeAuthWrite ;
+    ] ;
+
+    cg:atBoundary [
+        cg:boundaryId   ex:BoundaryAuthBroker ;
+        cg:sourceHolon  ex:HolonExternalFeed ;
+        cg:targetHolon  ex:HolonContextGraph01 ;
+    ] ;
+
+    cg:dataFacet    [ cg:rawContent "credential-submission-payload" ] ;
+    cg:meaningFacet [ cg:interpretedUnder ex:DeviceOntology ; rdfs:label "Session open" ] ;
+    cg:structureFacet [ cg:conformsToShape cgsh:ContextEventShape ] ;
+    cg:contextFacet [
+        cg:measuredCoherence  "1.0"^^xsd:decimal ;
+        cg:resolutionStatus   cg:Resolved ;
+    ] .
+
+ex:Session-NC10  a owl:NamedIndividual ; rdfs:label "Session NC-10 (invalid)" .
+
+ex:Session-NC10  cg:sessionStatus  cg:SessionOpen
+    ~ex:Reifier-NC10 .
+
+ex:Reifier-NC10
+    cg:producedByEvent    ex:Event-NC10 ;
+    cg:assertedAt         "2026-03-08T08:01:00Z"^^xsd:dateTimeStamp ;
+    cg:assertionAuthority ex:AuthBroker ;
+    cg:assertionGraph     ex:HolonContextGraph01 .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SUMMARY TABLE  (non-normative)
+#
+#  ID      Type              Syntax    Violation shape / constraint
+#  ─────────────────────────────────────────────────────────────────────────────
+#  C-01    DataEvent         {| |}     —  (all pass)
+#  C-02    SpatialEvent      {| |}     —
+#  C-03    PolicyEvent       ~IRI      —
+#  C-04    AuthEvent         ~IRI      —
+#  C-05    RelationEvent     {| |}     —
+#  C-06    BoundaryEvent     ~IRI ×2   —
+#
+#  NC-01   DataEvent         {| |}     ContextEventShape: cg:contextFacet minCount 1
+#  NC-02   DataEvent         {| |}     ContextEventShape: temporal ordering SPARQL
+#  NC-03   DataEvent         {| |}     AuthenticationContextShape: session expiry SPARQL
+#  NC-04   SpatialEvent      {| |}     SpatialEventConditional: sh:then (missing coords)
+#  NC-05   DataEvent         {| |}     SpatialEventConditional: sh:else (spurious coords)
+#  NC-06   DataEvent         {| |}     ContextEventShape: cg:eventStatus sh:in
+#  NC-07   DataEvent         ~IRI      AssertionAnnotationShape: cg:producedByEvent minCount 1
+#  NC-08   PolicyEvent       {| |}     PolicyEventConditional: sh:then (missing modifiedPolicy)
+#  NC-09   DataEvent         {| |}     ContextFacetShape: cg:measuredCoherence maxInclusive
+#  NC-10   AuthEvent         ~IRI      AuthEventConditional: sh:then (missing lifecycleStatus)
+# ═══════════════════════════════════════════════════════════════════════════════

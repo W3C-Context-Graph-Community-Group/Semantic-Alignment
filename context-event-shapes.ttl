@@ -1,0 +1,1039 @@
+# Context Graph — SHACL 1.2 Schema: ContextEvent
+#
+# Status:  Working Draft — v0.1
+# Group:   W3C Context Graph Community Group
+# Repo:    https://github.com/W3C-Context-Graph-Community-Group/Semantic-Alignment
+#
+# Purpose
+# -------
+# This file defines the SHACL 1.2 shapes, constraints, and rules governing a
+# ContextEvent — the primary unit of the Context Graph's append-only event log.
+#
+# A ContextEvent is the durable record produced when a validated Signal modifies
+# graph state. It carries four mandatory facets (Data, Meaning, Structure, Context),
+# provenance and temporal metadata, an authentication context, a boundary reference,
+# and a link to the ground assertion it produced. The ground assertion is annotated
+# using the RDF 1.2 triple annotation syntax ({| |}) whose reifier node is itself
+# shaped by sh:reifierShape — one of the key SHACL 1.2 additions.
+#
+# SHACL 1.2 features used
+# -----------------------
+#   sh:reifierShape      — shapes the RDF 1.2 annotation node on the ground assertion
+#   sh:if / sh:then / sh:else — conditional validation by event classification
+#   sh:SPARQLRule        — derives cg:eventStatus and cg:facetCompleteness
+#   sh:rootClass         — declares the root of the cg:ContextEvent type hierarchy
+#   sh:NodeExpression    — used in SPARQL rules for inline graph queries
+#
+# Design notes
+# ------------
+# [OPEN] The spatial facet conditional uses sh:if/sh:then/sh:else against a SKOS
+#         concept scheme. The group should decide whether classification-driven
+#         conditionals are best expressed this way or through sh:SPARQLConstraint.
+# [OPEN] The cg:ResolutionTrace shape is a stub here. It must be fully specified
+#         before this schema can be considered normatively complete.
+# [OPEN] Alignment with PROV-O Activity/Entity/Agent model is partial. A full
+#         PROV-O mapping should be produced as a companion note.
+# [OPEN] The VC alignment (cg:AuthenticationContext vs VC-DATA-MODEL 2.0) is
+#         illustrative. Normative alignment requires a separate group decision.
+
+@prefix sh:       <http://www.w3.org/ns/shacl#> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+@prefix prov:     <http://www.w3.org/ns/prov#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix geo:      <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix cg:       <https://w3c-context-graph-community-group.github.io/ns/context-graph#> .
+@prefix cgsh:     <https://w3c-context-graph-community-group.github.io/ns/context-graph/shapes#> .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 0 — Shared prefix declarations (reused across all SPARQL bodies)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cgsh:CommonPrefixes sh:declare
+    [ sh:prefix "rdf"     ; sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ],
+    [ sh:prefix "rdfs"    ; sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ],
+    [ sh:prefix "xsd"     ; sh:namespace "http://www.w3.org/2001/XMLSchema#"^^xsd:anyURI ],
+    [ sh:prefix "dcterms" ; sh:namespace "http://purl.org/dc/terms/"^^xsd:anyURI ],
+    [ sh:prefix "prov"    ; sh:namespace "http://www.w3.org/ns/prov#"^^xsd:anyURI ],
+    [ sh:prefix "skos"    ; sh:namespace "http://www.w3.org/2004/02/skos/core#"^^xsd:anyURI ],
+    [ sh:prefix "geo"     ; sh:namespace "http://www.w3.org/2003/01/geo/wgs84_pos#"^^xsd:anyURI ],
+    [ sh:prefix "cg"      ; sh:namespace "https://w3c-context-graph-community-group.github.io/ns/context-graph#"^^xsd:anyURI ] .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 1 — ContextEvent type hierarchy
+#
+# cg:ContextEvent is the root class (sh:rootClass). Subclasses specialise
+# by the nature of the state change recorded:
+#
+#   cg:DataEvent        — a change to a data value
+#   cg:RelationEvent    — a change to a relationship between entities
+#   cg:PolicyEvent      — a change to a constraint or rule in the graph
+#   cg:AuthEvent        — an authentication or credential lifecycle event
+#   cg:SpatialEvent     — an event carrying mandatory spatial context
+#   cg:BoundaryEvent    — a change in holon boundary membership or definition
+#
+# [OPEN] This taxonomy is illustrative. The group should define the full
+#         classification scheme as a SKOS ConceptScheme alongside this schema.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cg:ContextEvent a owl:Class, sh:NodeShape ;
+    sh:rootClass cg:ContextEvent ;
+    rdfs:label "Context Event" ;
+    rdfs:comment """The durable record produced when a validated Signal modifies
+                    the state of the Context Graph.""" .
+
+cg:DataEvent     rdfs:subClassOf cg:ContextEvent ;
+    rdfs:label "Data Event" ;
+    rdfs:comment "Records a change to a data value in the graph." .
+
+cg:RelationEvent rdfs:subClassOf cg:ContextEvent ;
+    rdfs:label "Relation Event" ;
+    rdfs:comment "Records a change to a relationship between two entities." .
+
+cg:PolicyEvent   rdfs:subClassOf cg:ContextEvent ;
+    rdfs:label "Policy Event" ;
+    rdfs:comment "Records a change to a constraint, rule, or shape in the graph." .
+
+cg:AuthEvent     rdfs:subClassOf cg:ContextEvent ;
+    rdfs:label "Authentication Event" ;
+    rdfs:comment "Records a credential submission, session renewal, or session termination." .
+
+cg:SpatialEvent  rdfs:subClassOf cg:ContextEvent ;
+    rdfs:label "Spatial Event" ;
+    rdfs:comment "A ContextEvent that carries mandatory spatial context." .
+
+cg:BoundaryEvent rdfs:subClassOf cg:ContextEvent ;
+    rdfs:label "Boundary Event" ;
+    rdfs:comment "Records a change in holon boundary membership or definition." .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 2 — Core ContextEvent shape
+#
+# This is the primary shape. Every cg:ContextEvent instance must conform to it
+# regardless of its specific subtype. Subtype-specific additional constraints are
+# applied through sh:if/sh:then/sh:else in Section 4.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cgsh:ContextEventShape a sh:NodeShape ;
+    sh:targetClass cg:ContextEvent ;
+    rdfs:label "Core ContextEvent shape" ;
+
+    # ── Identity ──────────────────────────────────────────────────────────────
+    # Every event has a stable IRI (the node itself) and a human-readable
+    # local identifier for display and logging purposes.
+
+    sh:property [
+        sh:path        cg:localId ;
+        sh:datatype    xsd:string ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:minLength   1 ;
+        sh:pattern     "^[a-zA-Z0-9\\-_\\.]{1,128}$" ;
+        rdfs:label     "Local identifier" ;
+        sh:message     "cg:localId must be present, unique within the graph, \
+                        and match the character class [a-zA-Z0-9\\-_\\.]{1,128}." ;
+    ] ;
+
+    # ── Temporal metadata ─────────────────────────────────────────────────────
+    # prov:generatedAtTime is mandatory: it records when the event was committed
+    # to the graph (system time, not actor-claimed time).
+    # prov:startedAtTime and prov:endedAtTime are optional and record the real-
+    # world time window of the activity the event captures.
+
+    sh:property [
+        sh:path        prov:generatedAtTime ;
+        sh:datatype    xsd:dateTimeStamp ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Commit timestamp" ;
+        sh:message     "Every ContextEvent must record a system-generated \
+                        commit timestamp as a prov:generatedAtTime xsd:dateTimeStamp." ;
+    ] ;
+
+    sh:property [
+        sh:path        prov:startedAtTime ;
+        sh:datatype    xsd:dateTimeStamp ;
+        sh:maxCount    1 ;
+        rdfs:label     "Activity start time" ;
+    ] ;
+
+    sh:property [
+        sh:path        prov:endedAtTime ;
+        sh:datatype    xsd:dateTimeStamp ;
+        sh:maxCount    1 ;
+        rdfs:label     "Activity end time" ;
+    ] ;
+
+    # prov:endedAtTime must not precede prov:startedAtTime where both are present.
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        rdfs:label "Temporal ordering check" ;
+        sh:message "prov:endedAtTime must not precede prov:startedAtTime." ;
+        sh:prefixes cgsh:CommonPrefixes ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this prov:startedAtTime ?start .
+                $this prov:endedAtTime   ?end .
+                FILTER( ?end < ?start )
+            }
+        """
+    ] ;
+
+    # ── Provenance ────────────────────────────────────────────────────────────
+    # cg:initiatedBy links to the actor (a prov:Agent) that submitted the
+    # triggering Signal. This is distinct from the authentication context: an
+    # actor may be a human, a service account, or an automated process.
+
+    sh:property [
+        sh:path        cg:initiatedBy ;
+        sh:nodeKind    sh:IRI ;
+        sh:class       prov:Agent ;
+        sh:minCount    1 ;
+        rdfs:label     "Initiating agent" ;
+        sh:message     "A ContextEvent must reference at least one initiating \
+                        prov:Agent via cg:initiatedBy." ;
+    ] ;
+
+    # cg:eventClassification links to a SKOS Concept from the event type scheme.
+    # The sh:if/sh:then/sh:else conditionals in Section 4 branch on this value.
+
+    sh:property [
+        sh:path        cg:eventClassification ;
+        sh:class       skos:Concept ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Event classification" ;
+        sh:message     "cg:eventClassification must reference exactly one \
+                        SKOS Concept from the cg:EventTypeScheme." ;
+    ] ;
+
+    # ── Ground assertion link ─────────────────────────────────────────────────
+    # Every ContextEvent must link to the assertion it produced. The reifier on
+    # that assertion is shaped separately by cgsh:AssertionAnnotationShape via
+    # sh:reifierShape (see Section 3).
+    # [OPEN] Should cg:producedAssertion be sh:minCount 1 or allow zero for
+    #         pure authentication events (cg:AuthEvent)?
+
+    sh:property [
+        sh:path        cg:producedAssertion ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        rdfs:label     "Produced assertion" ;
+        sh:message     "A ContextEvent must link to at least one ground assertion \
+                        produced by the event, via cg:producedAssertion." ;
+    ] ;
+
+    # ── Event trail ───────────────────────────────────────────────────────────
+    # cg:precedingEvent is optional on the first event in a session; mandatory
+    # on all subsequent events. The ordering constraint is enforced via SPARQL.
+    # [OPEN] The group must define what constitutes "session scope" for the
+    #         purpose of event trail continuity.
+
+    sh:property [
+        sh:path        cg:precedingEvent ;
+        sh:nodeKind    sh:IRI ;
+        sh:class       cg:ContextEvent ;
+        rdfs:label     "Preceding event" ;
+        sh:message     "cg:precedingEvent, when present, must reference a \
+                        cg:ContextEvent." ;
+    ] ;
+
+    # ── Authentication context ────────────────────────────────────────────────
+    sh:property [
+        sh:path        cg:authenticationContext ;
+        sh:node        cgsh:AuthenticationContextShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Authentication context" ;
+        sh:message     "A ContextEvent must have exactly one cg:authenticationContext \
+                        conforming to cgsh:AuthenticationContextShape." ;
+    ] ;
+
+    # ── Boundary reference ────────────────────────────────────────────────────
+    sh:property [
+        sh:path        cg:atBoundary ;
+        sh:node        cgsh:BoundaryMetadataShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "At boundary" ;
+        sh:message     "A ContextEvent must declare the system boundary at which \
+                        it occurred, via cg:atBoundary." ;
+    ] ;
+
+    # ── Four Facets ───────────────────────────────────────────────────────────
+    # All four facets are required on every ContextEvent. Each facet is a
+    # structured node with its own shape.
+
+    sh:property [
+        sh:path        cg:dataFacet ;
+        sh:node        cgsh:DataFacetShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Data facet" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:meaningFacet ;
+        sh:node        cgsh:MeaningFacetShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Meaning facet" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:structureFacet ;
+        sh:node        cgsh:StructureFacetShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Structure facet" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:contextFacet ;
+        sh:node        cgsh:ContextFacetShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Context facet" ;
+    ] ;
+
+    # ── Derived properties (via SPARQLRule) ───────────────────────────────────
+    # cg:eventStatus and cg:facetCompleteness are inferred; they must not be
+    # asserted directly in input data.
+
+    sh:property [
+        sh:path        cg:eventStatus ;
+        sh:in          ( cg:StatusValidated cg:StatusPending cg:StatusFailed ) ;
+        sh:maxCount    1 ;
+        rdfs:label     "Event status" ;
+        sh:message     "cg:eventStatus must be one of cg:StatusValidated, \
+                        cg:StatusPending, or cg:StatusFailed." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:facetCompleteness ;
+        sh:datatype    xsd:integer ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 4 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Facet completeness score (0–4)" ;
+    ] ;
+
+    # ── Inference rules ───────────────────────────────────────────────────────
+    sh:rule cgsh:EventStatusRule,
+            cgsh:FacetCompletenessRule .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 3 — Reifier shape (SHACL 1.2: sh:reifierShape)
+#
+# When a ground assertion is produced by a ContextEvent, it is annotated using
+# the RDF 1.2 triple annotation syntax:
+#
+#   ex:Subject  ex:predicate  ex:Object
+#       {| cg:producedByEvent  ex:Event001 ;
+#          cg:assertedAt       "..."^^xsd:dateTimeStamp ;
+#          cg:assertionAuthority ex:Actor001 ;
+#          cg:assertionGraph   ex:NamedGraph001 |} .
+#
+# The anonymous node created by the {| |} syntax is the *reifier*. SHACL 1.2's
+# sh:reifierShape applies a shape to that node, enforcing that every annotated
+# triple carries the required event provenance metadata.
+#
+# The shape below is attached to the property cg:producedAssertion via a
+# property shape on the subject resource. In practice, the shape is declared
+# on the property path that produces the annotated triple; the reifier shape
+# then validates the annotation node independently of the triple's subject,
+# predicate, and object.
+#
+# [OPEN] sh:reifierShape support varies across engines at time of writing
+#         (March 2026). This feature should be tested against the group's
+#         reference implementation before the schema is marked normative.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cgsh:AssertionPropertyShape a sh:PropertyShape ;
+    sh:path            cg:producedAssertion ;
+    rdfs:label         "Produced assertion property — with reifier shape" ;
+    sh:reifierShape    cgsh:AssertionAnnotationShape .
+
+cgsh:AssertionAnnotationShape a sh:NodeShape ;
+    rdfs:label "Assertion annotation shape" ;
+    rdfs:comment """Shapes the reifier node produced by the RDF 1.2 {| |}
+                    annotation syntax on any ground assertion created by a
+                    ContextEvent. Enforces that every annotated triple records
+                    the producing event, its timestamp, and its authority.""" ;
+
+    sh:property [
+        sh:path        cg:producedByEvent ;
+        sh:class       cg:ContextEvent ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Produced by event" ;
+        sh:message     "Every annotated assertion must link back to the \
+                        cg:ContextEvent that produced it." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:assertedAt ;
+        sh:datatype    xsd:dateTimeStamp ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Asserted at" ;
+        sh:message     "The annotation reifier must carry an assertion timestamp." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:assertionAuthority ;
+        sh:nodeKind    sh:IRI ;
+        sh:class       prov:Agent ;
+        sh:minCount    1 ;
+        rdfs:label     "Assertion authority" ;
+        sh:message     "The annotation reifier must identify the authority \
+                        (prov:Agent) under which the assertion was made." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:assertionGraph ;
+        sh:nodeKind    sh:IRI ;
+        sh:maxCount    1 ;
+        rdfs:label     "Assertion named graph" ;
+        sh:message     "If specified, cg:assertionGraph must be an IRI identifying \
+                        the named graph into which the assertion was committed." ;
+    ] ;
+
+    # Coherence contribution of this specific assertion — optional at annotation
+    # level; derived at event level by cgsh:FacetCompletenessRule.
+    sh:property [
+        sh:path        cg:coherenceContribution ;
+        sh:datatype    xsd:decimal ;
+        sh:minInclusive "0.0"^^xsd:decimal ;
+        sh:maxInclusive "1.0"^^xsd:decimal ;
+        sh:maxCount    1 ;
+        rdfs:label     "Coherence contribution [0.0–1.0]" ;
+    ] .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 4 — Conditional shapes (SHACL 1.2: sh:if / sh:then / sh:else)
+#
+# The base ContextEvent shape applies to all events. The shapes below add
+# classification-specific requirements using SHACL 1.2 conditional logic.
+#
+# Pattern: a wrapping NodeShape with sh:targetClass applies sh:if to test the
+# event's rdf:type against a specific subclass, then applies sh:then to add the
+# required additional constraints, and sh:else to confirm baseline sufficiency.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── 4a. SpatialEvent conditional ─────────────────────────────────────────────
+# If the event is a cg:SpatialEvent, geographic coordinates are mandatory.
+# If it is not, no spatial properties should be present (prevents spurious data).
+
+cgsh:SpatialEventConditional a sh:NodeShape ;
+    sh:targetClass cg:ContextEvent ;
+    rdfs:label "Spatial event conditional" ;
+    sh:if [
+        sh:class cg:SpatialEvent ;
+    ] ;
+    sh:then cgsh:SpatialContextRequiredShape ;
+    sh:else cgsh:SpatialContextAbsentShape .
+
+cgsh:SpatialContextRequiredShape a sh:NodeShape ;
+    rdfs:label "Spatial context required (for SpatialEvent)" ;
+    sh:property [
+        sh:path        cg:spatialContext ;
+        sh:node        cgsh:SpatialContextShape ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:message     "A cg:SpatialEvent must carry a cg:spatialContext node \
+                        conforming to cgsh:SpatialContextShape." ;
+    ] .
+
+cgsh:SpatialContextAbsentShape a sh:NodeShape ;
+    rdfs:label "Spatial context absent (for non-SpatialEvent)" ;
+    sh:property [
+        sh:path        cg:spatialContext ;
+        sh:maxCount    0 ;
+        sh:message     "cg:spatialContext should not appear on a ContextEvent \
+                        that is not typed as cg:SpatialEvent. If spatial data is \
+                        relevant, retype the event as cg:SpatialEvent." ;
+    ] .
+
+# ── 4b. PolicyEvent conditional ──────────────────────────────────────────────
+# PolicyEvents record changes to constraints or rules and must link to the
+# prior state of the policy object they are modifying.
+
+cgsh:PolicyEventConditional a sh:NodeShape ;
+    sh:targetClass cg:ContextEvent ;
+    rdfs:label "Policy event conditional" ;
+    sh:if [
+        sh:class cg:PolicyEvent ;
+    ] ;
+    sh:then cgsh:PolicyChangeRequiredShape .
+
+cgsh:PolicyChangeRequiredShape a sh:NodeShape ;
+    rdfs:label "Policy change metadata required (for PolicyEvent)" ;
+    sh:property [
+        sh:path        cg:modifiedPolicy ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:message     "A cg:PolicyEvent must reference the policy object \
+                        (constraint or rule IRI) that was modified." ;
+    ] ;
+    sh:property [
+        sh:path        cg:priorPolicyVersion ;
+        sh:nodeKind    sh:IRI ;
+        sh:maxCount    1 ;
+        sh:message     "cg:priorPolicyVersion, if present, must be an IRI \
+                        referencing the previous version of the modified policy." ;
+    ] .
+
+# ── 4c. AuthEvent conditional ────────────────────────────────────────────────
+# AuthEvents must carry explicit credential lifecycle status.
+
+cgsh:AuthEventConditional a sh:NodeShape ;
+    sh:targetClass cg:ContextEvent ;
+    rdfs:label "Authentication event conditional" ;
+    sh:if [
+        sh:class cg:AuthEvent ;
+    ] ;
+    sh:then cgsh:AuthEventRequiredShape .
+
+cgsh:AuthEventRequiredShape a sh:NodeShape ;
+    rdfs:label "Auth event required fields" ;
+    sh:property [
+        sh:path        cg:credentialLifecycleStatus ;
+        sh:in          ( cg:CredentialSubmitted cg:CredentialRenewed
+                         cg:CredentialExpired   cg:CredentialRevoked ) ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:message     "A cg:AuthEvent must declare a cg:credentialLifecycleStatus." ;
+    ] .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 5 — Four Facet shapes
+#
+# Each facet node is a structured sub-graph. The shapes below enforce the
+# minimum required content for each facet. They are intentionally open (no
+# sh:closed true) to allow domain-specific extension without schema violation.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cgsh:DataFacetShape a sh:NodeShape ;
+    rdfs:label "Data facet shape" ;
+    rdfs:comment "The raw informational content of the context event." ;
+
+    sh:property [
+        sh:path        cg:rawContent ;
+        sh:minCount    1 ;
+        rdfs:label     "Raw content" ;
+        sh:message     "cg:dataFacet must include at least one cg:rawContent value." ;
+    ] ;
+
+    sh:property [
+        sh:path        dcterms:format ;
+        sh:nodeKind    sh:IRI ;
+        sh:maxCount    1 ;
+        rdfs:label     "Content format" ;
+        sh:message     "dcterms:format on a DataFacet, if present, must be an IRI \
+                        (e.g. a media type IRI from IANA)." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:contentHash ;
+        sh:datatype    xsd:string ;
+        sh:maxCount    1 ;
+        rdfs:label     "Content hash" ;
+        sh:message     "cg:contentHash should be a hex-encoded digest string." ;
+    ] .
+
+
+cgsh:MeaningFacetShape a sh:NodeShape ;
+    rdfs:label "Meaning facet shape" ;
+    rdfs:comment """The semantic interpretation of the event content within a
+                    given vocabulary or ontology.""" ;
+
+    # The vocabulary or ontology against which meaning is asserted.
+    sh:property [
+        sh:path        cg:interpretedUnder ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        rdfs:label     "Interpreted under" ;
+        sh:message     "cg:meaningFacet must reference at least one vocabulary \
+                        or ontology IRI via cg:interpretedUnder." ;
+    ] ;
+
+    # The primary concept from that vocabulary.
+    sh:property [
+        sh:path        cg:primaryConcept ;
+        sh:nodeKind    sh:IRI ;
+        sh:maxCount    1 ;
+        rdfs:label     "Primary concept" ;
+    ] ;
+
+    # Human-readable label for the meaning in this context.
+    sh:property [
+        sh:path        rdfs:label ;
+        sh:datatype    xsd:string ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:message     "cg:meaningFacet must include a plain-string rdfs:label." ;
+    ] .
+
+
+cgsh:StructureFacetShape a sh:NodeShape ;
+    rdfs:label "Structure facet shape" ;
+    rdfs:comment """The constraints and structural relationships governing how
+                    the event content relates to other graph entities.""" ;
+
+    # Reference to the shape(s) that the event content conforms to.
+    sh:property [
+        sh:path        cg:conformsToShape ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        rdfs:label     "Conforms to shape" ;
+        sh:message     "cg:structureFacet must reference at least one sh:NodeShape \
+                        or sh:PropertyShape that the event content satisfies." ;
+    ] ;
+
+    # Explicit record of which constraints were evaluated and their outcome.
+    sh:property [
+        sh:path        cg:constraintEvaluationRecord ;
+        sh:node        cgsh:ConstraintEvaluationShape ;
+        rdfs:label     "Constraint evaluation record" ;
+    ] .
+
+
+cgsh:ConstraintEvaluationShape a sh:NodeShape ;
+    rdfs:label "Constraint evaluation record shape" ;
+    sh:property [
+        sh:path        cg:evaluatedConstraint ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+    ] ;
+    sh:property [
+        sh:path        cg:evaluationResult ;
+        sh:in          ( cg:ResultPassed cg:ResultFailed cg:ResultWarning ) ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+    ] .
+
+
+cgsh:ContextFacetShape a sh:NodeShape ;
+    rdfs:label "Context facet shape" ;
+    rdfs:comment """The boundary conditions and prerequisites required for valid
+                    interpretation of the event.""" ;
+
+    # The coherence level measured at the time of the event.
+    sh:property [
+        sh:path        cg:measuredCoherence ;
+        sh:datatype    xsd:decimal ;
+        sh:minInclusive "0.0"^^xsd:decimal ;
+        sh:maxInclusive "1.0"^^xsd:decimal ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Measured coherence [0.0–1.0]" ;
+        sh:message     "cg:contextFacet must carry a cg:measuredCoherence score \
+                        between 0.0 and 1.0 inclusive." ;
+    ] ;
+
+    # The intent attributed to the initiating actor (see Glossary: Intent).
+    sh:property [
+        sh:path        cg:attributedIntent ;
+        sh:node        cgsh:IntentShape ;
+        sh:maxCount    1 ;
+        rdfs:label     "Attributed intent" ;
+    ] ;
+
+    # The prerequisite conditions required for interpretation.
+    sh:property [
+        sh:path        cg:prerequisite ;
+        sh:nodeKind    sh:IRI ;
+        rdfs:label     "Prerequisite" ;
+        sh:message     "cg:prerequisite values must be IRI references to the \
+                        required contextual conditions." ;
+    ] ;
+
+    # Resolution status of this event's context gap.
+    sh:property [
+        sh:path        cg:resolutionStatus ;
+        sh:in          ( cg:Resolved cg:PartiallyResolved cg:Unresolved ) ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Resolution status" ;
+    ] .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 6 — Auxiliary component shapes
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Authentication context ────────────────────────────────────────────────────
+# [OPEN] Normative alignment with VC-DATA-MODEL 2.0 pending group decision.
+
+cgsh:AuthenticationContextShape a sh:NodeShape ;
+    rdfs:label "Authentication context shape" ;
+    rdfs:comment "Represents an active verified session under which an event was submitted." ;
+
+    sh:property [
+        sh:path        cg:credentialId ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Credential IRI" ;
+        sh:message     "cg:authenticationContext must reference the credential \
+                        IRI for the active session." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:credentialHolder ;
+        sh:nodeKind    sh:IRI ;
+        sh:class       prov:Agent ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Credential holder" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:sessionValidFrom ;
+        sh:datatype    xsd:dateTimeStamp ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Session valid from" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:sessionValidUntil ;
+        sh:datatype    xsd:dateTimeStamp ;
+        sh:maxCount    1 ;
+        rdfs:label     "Session valid until" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:permissionScope ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        rdfs:label     "Permission scope" ;
+        sh:message     "At least one permission scope IRI must be declared \
+                        on the authentication context." ;
+    ] ;
+
+    # Session must not have already expired at commit time.
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        rdfs:label "Session expiry check" ;
+        sh:message "The credential session had expired before this event was committed." ;
+        sh:prefixes cgsh:CommonPrefixes ;
+        sh:select """
+            SELECT $this
+            WHERE {
+                $this cg:sessionValidUntil ?expiry .
+                # Walk up to the parent event to get the commit time
+                ?event cg:authenticationContext $this ;
+                       prov:generatedAtTime     ?commitTime .
+                FILTER( ?commitTime > ?expiry )
+            }
+        """
+    ] .
+
+
+# ── Boundary metadata ─────────────────────────────────────────────────────────
+# [OPEN] Full boundary definition pending group decision on whether a boundary
+#         is a named graph, a trust domain, or a composite construct.
+
+cgsh:BoundaryMetadataShape a sh:NodeShape ;
+    rdfs:label "Boundary metadata shape" ;
+    rdfs:comment "Identifies and describes the holon boundary at which the event occurred." ;
+
+    sh:property [
+        sh:path        cg:boundaryId ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Boundary IRI" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:sourceHolon ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Source holon" ;
+        sh:message     "cg:boundaryMetadata must identify the source holon." ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:targetHolon ;
+        sh:nodeKind    sh:IRI ;
+        sh:maxCount    1 ;
+        rdfs:label     "Target holon" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:boundaryCoherenceScore ;
+        sh:datatype    xsd:decimal ;
+        sh:minInclusive "0.0"^^xsd:decimal ;
+        sh:maxInclusive "1.0"^^xsd:decimal ;
+        sh:maxCount    1 ;
+        rdfs:label     "Boundary coherence score [0.0–1.0]" ;
+    ] .
+
+
+# ── Spatial context ───────────────────────────────────────────────────────────
+
+cgsh:SpatialContextShape a sh:NodeShape ;
+    rdfs:label "Spatial context shape" ;
+    rdfs:comment "Geographic and spatial metadata for cg:SpatialEvent instances." ;
+
+    sh:property [
+        sh:path        geo:lat ;
+        sh:datatype    xsd:decimal ;
+        sh:minInclusive "-90.0"^^xsd:decimal ;
+        sh:maxInclusive "90.0"^^xsd:decimal ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Latitude" ;
+    ] ;
+
+    sh:property [
+        sh:path        geo:long ;
+        sh:datatype    xsd:decimal ;
+        sh:minInclusive "-180.0"^^xsd:decimal ;
+        sh:maxInclusive "180.0"^^xsd:decimal ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Longitude" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:spatialPrecisionMetres ;
+        sh:datatype    xsd:decimal ;
+        sh:minInclusive "0.0"^^xsd:decimal ;
+        sh:maxCount    1 ;
+        rdfs:label     "Spatial precision (metres)" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:spatialReferenceSystem ;
+        sh:nodeKind    sh:IRI ;
+        sh:maxCount    1 ;
+        rdfs:label     "Spatial reference system" ;
+        rdfs:comment   "IRI of the CRS in use. Defaults to WGS84 if absent." ;
+    ] .
+
+
+# ── Intent ────────────────────────────────────────────────────────────────────
+
+cgsh:IntentShape a sh:NodeShape ;
+    rdfs:label "Intent shape" ;
+    rdfs:comment "Records the intent attributed to the initiating actor for this event." ;
+
+    sh:property [
+        sh:path        cg:intentType ;
+        sh:in          ( cg:ExplicitIntent cg:InferredIntent cg:ComposedIntent ) ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Intent type" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:intentDescription ;
+        sh:datatype    xsd:string ;
+        sh:maxCount    1 ;
+        rdfs:label     "Intent description" ;
+    ] ;
+
+    # Where intent was inferred or composed, record the evidence sources.
+    sh:property [
+        sh:path        cg:intentEvidence ;
+        sh:nodeKind    sh:IRI ;
+        rdfs:label     "Intent evidence" ;
+        sh:message     "cg:intentEvidence values must be IRIs referencing \
+                        the events or signals from which intent was inferred." ;
+    ] .
+
+
+# ── Resolution trace stub ─────────────────────────────────────────────────────
+# [PLACEHOLDER] Full specification of the resolution trace is required before
+# this shape can be considered normative. Minimum viable stub below.
+
+cgsh:ResolutionTraceShape a sh:NodeShape ;
+    rdfs:label "Resolution trace shape (stub)" ;
+    rdfs:comment """PLACEHOLDER. The resolution trace records the full history
+                    of how contextual misalignments at a boundary were identified,
+                    measured, and resolved (or left unresolved) during the lifetime
+                    of a context graph instance. This shape requires full
+                    specification by the group before normalisation.""" ;
+
+    sh:property [
+        sh:path        cg:traceId ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Trace IRI" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:traceEvents ;
+        sh:class       cg:ContextEvent ;
+        sh:nodeKind    sh:IRI ;
+        sh:minCount    1 ;
+        rdfs:label     "Trace events" ;
+    ] ;
+
+    sh:property [
+        sh:path        cg:traceOutcome ;
+        sh:in          ( cg:TraceResolved cg:TracePartial cg:TraceUnresolved ) ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        rdfs:label     "Trace outcome" ;
+    ] .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 7 — SPARQL rules
+#
+# These rules derive cg:eventStatus and cg:facetCompleteness. They are attached
+# to cgsh:ContextEventShape (see Section 2) via sh:rule references.
+#
+# sh:order values ensure canonical execution order:
+#   order 0 — facet completeness score (input to status derivation)
+#   order 1 — event status (consumes facet completeness)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cgsh:FacetCompletenessRule a sh:SPARQLRule ;
+    rdfs:label "Facet completeness rule" ;
+    rdfs:comment """Counts how many of the four required facets are present
+                    and writes that count to cg:facetCompleteness (0–4).""" ;
+    sh:order 0 ;
+    sh:prefixes cgsh:CommonPrefixes ;
+    sh:construct """
+        PREFIX cg: <https://w3c-context-graph-community-group.github.io/ns/context-graph#>
+        CONSTRUCT { $this cg:facetCompleteness ?score }
+        WHERE {
+            BIND(
+                ( IF(EXISTS { $this cg:dataFacet      ?d }, 1, 0)
+                + IF(EXISTS { $this cg:meaningFacet   ?m }, 1, 0)
+                + IF(EXISTS { $this cg:structureFacet ?s }, 1, 0)
+                + IF(EXISTS { $this cg:contextFacet   ?c }, 1, 0)
+                ) AS ?score
+            )
+        }
+    """ .
+
+
+cgsh:EventStatusRule a sh:SPARQLRule ;
+    rdfs:label "Event status rule" ;
+    rdfs:comment """Derives cg:eventStatus from cg:facetCompleteness and the
+                    presence of an authentication context:
+                      4 facets + auth context  → cg:StatusValidated
+                      4 facets, no auth        → cg:StatusPending
+                      < 4 facets              → cg:StatusFailed""" ;
+    sh:order 1 ;
+    sh:prefixes cgsh:CommonPrefixes ;
+    sh:construct """
+        PREFIX cg: <https://w3c-context-graph-community-group.github.io/ns/context-graph#>
+        CONSTRUCT { $this cg:eventStatus ?status }
+        WHERE {
+            $this cg:facetCompleteness ?score .
+            OPTIONAL { $this cg:authenticationContext ?auth }
+            BIND(
+                IF( ?score = 4 && BOUND(?auth), cg:StatusValidated,
+                IF( ?score = 4,                  cg:StatusPending,
+                                                 cg:StatusFailed ))
+                AS ?status
+            )
+        }
+    """ .
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SECTION 8 — Example instance (non-normative)
+#
+# Illustrates a minimal conforming cg:DataEvent using Turtle 1.2 annotation
+# syntax ({| |}) for the ground assertion reification.
+#
+# This section should be moved to a companion examples document before the
+# schema is published as a normative Community Group Report.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# -- Prefix aliases for the example only --------------------------------------
+
+# @prefix ex:   <https://example.org/cg-demo/> .
+
+# -- The initiating agent -----------------------------------------------------
+
+# ex:ServiceAccountA
+#     a prov:Agent ;
+#     rdfs:label "Ingest service account A" .
+
+# -- The context event ---------------------------------------------------------
+
+# ex:Event001
+#     a cg:DataEvent ;
+
+#     # Identity
+#     cg:localId  "event-2026-03-08-001" ;
+
+#     # Temporal
+#     prov:generatedAtTime  "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+#     prov:startedAtTime    "2026-03-08T09:14:20Z"^^xsd:dateTimeStamp ;
+#     prov:endedAtTime      "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+
+#     # Provenance
+#     cg:initiatedBy          ex:ServiceAccountA ;
+#     cg:eventClassification  cg:DataEvent ;
+
+#     # Authentication
+#     cg:authenticationContext [
+#         cg:credentialId       ex:Credential099 ;
+#         cg:credentialHolder   ex:ServiceAccountA ;
+#         cg:sessionValidFrom   "2026-03-08T08:00:00Z"^^xsd:dateTimeStamp ;
+#         cg:sessionValidUntil  "2026-03-08T17:00:00Z"^^xsd:dateTimeStamp ;
+#         cg:permissionScope    cg:ScopeDataWrite ;
+#     ] ;
+
+#     # Boundary
+#     cg:atBoundary [
+#         cg:boundaryId     ex:Boundary-Ingest-A ;
+#         cg:sourceHolon    ex:ExternalSystem ;
+#         cg:targetHolon    ex:ContextGraphInstance01 ;
+#     ] ;
+
+#     # Ground assertion (linked; annotated below with {| |} syntax)
+#     cg:producedAssertion ex:TargetEntity ;
+
+#     # Four facets
+#     cg:dataFacet [
+#         cg:rawContent  "42.7" ;
+#         dcterms:format <https://www.iana.org/assignments/media-types/text/plain> ;
+#     ] ;
+#     cg:meaningFacet [
+#         cg:interpretedUnder ex:SensorOntology ;
+#         cg:primaryConcept   ex:TemperatureReading ;
+#         rdfs:label          "Temperature reading" ;
+#     ] ;
+#     cg:structureFacet [
+#         cg:conformsToShape  cgsh:DataFacetShape ;
+#     ] ;
+#     cg:contextFacet [
+#         cg:measuredCoherence  "0.92"^^xsd:decimal ;
+#         cg:resolutionStatus   cg:Resolved ;
+#     ] .
+
+# -- Ground assertion with Turtle 1.2 annotation syntax -----------------------
+# The {| |} creates a reifier node validated by cgsh:AssertionAnnotationShape.
+
+# ex:TargetEntity  ex:temperature  "42.7"
+#     {| cg:producedByEvent    ex:Event001 ;
+#        cg:assertedAt         "2026-03-08T09:14:22Z"^^xsd:dateTimeStamp ;
+#        cg:assertionAuthority ex:ServiceAccountA ;
+#        cg:assertionGraph     ex:ContextGraphInstance01 |} .
