@@ -116,6 +116,21 @@ The nesting of holons is recursive: a holon may contain other holons to any dept
 A signal that passes all three gates generates a **context event**. A signal that fails at any gate generates a **report** and does not modify the graph state.
 
 ---
+### Coherence Stack
+
+*Type: Foundational concept*
+
+The Coherence Stack is the four-layer architecture that organizes the Context Graphs program. Each layer addresses a distinct problem that the layers above it cannot solve: the Tensor Substrate provides a unified mathematical representation that makes coherence state computable; the Context Graph is a hypergraph to log events that enable measures of coherence at a boundary; the Coherence Protocol specifies how those measurements are made and compared; and the Decision Interface acts on them. No layer prescribes the internal architecture of the systems on either side of it — each standardizes only the contract at its own boundary, leaving practitioners free to apply any compatible ML, inference, or decision framework downstream.
+
+| Layer | Name | Purpose | Key Operations |
+|---|---|---|---|
+| 0 | **Tensor Substrate** | Provides the unified mathematical substrate for representing and operating on contextual prerequisites, resolution states, and facet evaluations as tensor equations | Eigensum computation, Tucker decomposition, tensor factorization of multi-facet uncertainty vectors, dimensionality reduction across boundary-crossing state |
+| 1 | **Context Graph** | An auditable, append-only hypergraph log of context events at local and global system boundaries, accessible only through the Context Graph Control Plane | Four-facet evaluation (meaning, structure, data, context); gap decomposition; validation report generation; knowledge graph view; authenticated access control |
+| 2 | **Coherence Protocol** | Specifies how coherence measurements are made and compared across boundaries: whether representations are identical, whether sufficient information exists to compare them, and how uncertainty is expressed as collapsible pure states | Cross-boundary comparison of representations; gap detection; pure state encoding of uncertainty (e.g. 0,0,0,0,1,0); uncertainty collapse on sampling; resolution trace linking; canonical form reduction (O(N²) → O(N)); Act / Ask / Halt |
+| 3 | **Decision Interface** | Consumes coherence measurements and resolution traces to drive downstream decisions | Facet-indexed uncertainty vector ingestion; decision model integration (threshold, Bayesian, utility, etc.); auditable decision replay; policy parameter application |
+
+
+---
 
 ## Part 2: Structural Components
 
