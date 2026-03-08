@@ -176,6 +176,28 @@ Both knowledge graphs and context graphs are hypergraphs in this sense. This spe
 
 ---
 
+### Intent Map
+
+*Type: Structural component*
+
+An Intent Map is a deterministic trigger configuration that intercepts specified words, phrases, or patterns at a boundary crossing and presents structured options to sample and collapse user intent. Where the **Coherence Protocol** detects misalignment across systems, the Intent Map detects ambiguity at the point of human input — before it enters the system — and resolves it through explicit user confirmation rather than inference.
+
+Each trigger specifies a pattern to observe, a severity (halt, ask, or act), and a handler that surfaces options to the user. The user's selection collapses the ambiguous term into a known, unambiguous state that the system can act on deterministically.
+
+Intent Map triggers are organized into three coherence-protocol levels:
+
+- **Halt** — the input cannot proceed until the ambiguity is resolved (e.g. PII detection)
+- **Ask** — the input may proceed but the user is asked to confirm intent (e.g. temporal ambiguity such as "yesterday")
+- **Act** — the input is valid and may proceed; structured options are surfaced to enrich or disambiguate intent without blocking progress
+
+Intent Maps may be authored by system designers, organizations, or composed from both. The specification defines a format-agnostic schema (JSON, YAML, or other serializations).
+
+See also: **Coherence Protocol**, **Intentional Graph**, **Resolution Trace**.
+
+> **[OPEN]** The relationship between Intent Map trigger resolution and the Coherence Protocol's pure state representation should be formally specified — specifically, how a user selection propagates as a resolved state into the resolution trace.
+
+---
+
 ### Intentional Graph
 
 *Type: Structural component* **\[OPEN\]**
