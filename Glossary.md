@@ -100,6 +100,27 @@ The nesting of holons is recursive: a holon may contain other holons to any dept
 > **\[NOTE\]** The term *holon* originates with Arthur Koestler (*The Ghost in the Machine*, 1967) and has prior use in philosophy of mind and systems theory. Its adoption here is for precision, not provocation — specifically, the dual whole/part property has no clean equivalent in standard graph vocabulary. Alternatives considered included *scope*, *system boundary*, and *named graph boundary*; none captured the recursive compositional property adequately.
 
 ---
+### Ontology, Protocol, or Both?
+
+*Type: Foundational concept*
+
+TCP/IP counts bits and packets to answer: did the message arrive intact? The Coherence Protocol counts bits to answer: does the message mean the same thing on both sides? TCP/IP verifies transmission. The protocol verifies coherence. Both measure in bits. Different bits. Different layer. Same architectural pattern.
+The topology is where it gets important. TCP/IP has a sender, a receiver, and a channel. The packet either arrived or it didn't. That's a two-party check on a single channel.
+
+The Context Graph is fundamentally different. There is no master graph. Each system has its own local context graph — its own representation of what it knows, what it assumes, and what it has resolved. Coherence is not a property of any single graph. It's a property of the boundary where two local graphs meet. No graph is authoritative over another. Each is a local reflection.
+What lives on each local graph — the claims about meaning, structure, data, and context at every boundary — is an ontology. It is a structured representation of what a system knows and assumes. The protocol is what runs on that ontology: measuring, comparing, resolving. The graph is the knowledge. The protocol is the instrument. They are not competing concepts. One is the surface. The other is what you do with it. See: [Holon](#holon)
+
+But the relationship goes deeper than surface and instrument. The graph doesn't exist before the protocol runs. The protocol has nothing to run on before the graph exists. They create each other.
+When the protocol runs at a boundary — comparing codebooks, detecting misalignment, issuing an Ask — the result is a ContextEvent that gets written to the graph. That event is the graph. The graph is not a pre-existing database the protocol queries. It is the accumulated trace of the protocol having run. And the next time the protocol runs at that boundary — or any boundary involving the same systems — it reads the graph that prior runs produced. The resolutions already recorded shape what the protocol needs to ask next. The graph tells the protocol what's already been resolved. The protocol tells the graph what's still missing.
+
+**The protocol is the graph observing itself and deciding what to do.**
+
+Your context graph reflects your system's state. My context graph reflects mine. Neither of us has the "real" graph. What we have is a comparison surface — the canonical claim form — where both local graphs can project onto the same five-column substrate and the protocol can measure the divergence in bits.
+
+This is similar to the mercury pool reflecting the stars metaphor: the local boundary (mercury surface) can only reflect its outer boundary (stars), but it doesn't directly touch or have any ownership of it.
+The pathways between local graphs — every Ask, every resolution trace, every Context entry that flows across a boundary — are not data transfers. They are pathways to reconciliation of mutual understanding. Each one narrows the gap between what your (sender) graph reflects (a local ContextEvent can include boundaries of many systems) and what my (receiver) reflects. The bit-level accuracy is what makes that narrowing measurable. You can say: this boundary had 3 bits of divergence, we resolved 2 through Asks, 1 remains open, the protocol action is Ask or Halt depending on your threshold.
+
+---
 
 ### Signal
 
