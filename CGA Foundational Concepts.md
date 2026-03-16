@@ -456,6 +456,26 @@ additionally asserts that the anonymous reifier node has the stated properties.
 The reifier node is distinct from the subject, predicate, or object; it
 annotates the triple as a whole.
 
+A reifier triple can also take a named IRI or blank node:
+
+```turtle
+<subject> <predicate> <object> ~ <annotation-name> {|
+    <annotation-property> <annotation-value> ;
+    <annotation-property> <annotation-value>
+|} .
+```
+
+The notation:
+
+```turtle
+<subject> <predicate> <object> ~ {|
+    <annotation-property> <annotation-value> ;
+    <annotation-property> <annotation-value>
+|} .
+```
+is also valid. In this case, the name is assumed to be an anonymous reifier node. 
+
+
 Named graph blocks use the SPARQL/Turtle `GRAPH` keyword:
 
 ```turtle
