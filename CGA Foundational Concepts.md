@@ -290,6 +290,8 @@ within each major section.
 
 ## 2. Terminology and Definitions {#terminology}
 
+Note that the terminology here is summary in nature. The [Glossary](#Glossary.md) contains deeper definitions and interpretations of these and related terms.
+
 ### 2.1 Core RDF Terminology {#core-rdf-terminology}
 
 This document assumes familiarity with the following RDF concepts as defined
@@ -392,6 +394,8 @@ are the inputs to the event sourcing pipeline.
 an IoT device or sensor — whose trustworthiness has not yet been established.
 Observations reside in the ingestion graph and carry no assertional status
 in the interior graph until promoted through the trust boundary.
+
+**Signal.** Synonym of observation.
 
 **Belief.** An assertion annotated with a confidence value representing the
 system's current degree of certainty that the asserted state corresponds to
