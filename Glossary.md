@@ -403,6 +403,64 @@ The state machine is deliberately mechanistic. It does not model internal motiva
 
 ---
 
+### Document
+
+*Type: Operational concept*
+
+A **document** is a bounded, semantically complete block of information intended to communicate a concept, idea, or narrative or similar linguistic unit. This can include data blocks and compound documents such as a book, chapter, section, etc. It is synonymous with **message** [*editor note*: This is an assumption that should  be tested]. . 
+
+---
+
+### Stream
+
+*Type: Operational concept* 
+
+For processing purposes, a stream is a sequence of one or more documents. The documents do not have to be necessarily semantically related. A document can be thought of as a stream that is semantically coherent - it forms a temporal narrative in its entirety.
+
+---
+
+### Representation
+
+*Type: Operational concept* 
+
+A representation is the encoding of a document utilising a specific set of protocols. A text sequence is a representation, an XML document is a representation, and so forth. A **represention format** is the specific encoding protocol used for a document. The representation is in effect the serialisation of the semantic state of a given document. Note that the representation of a document or a stream perforce is imperfect - it is a model of the state of the document, using conceptual and structural denotations in order to capture and qualify abstract concepts. The same "document" may have multiple representations, depending upon the intrinsic semantics of that document and the requirements on the representation. This model is the ontology of the documentation.
+
+---
+
+### Representational State Transfer (REST)
+
+*Type: Operational concept* 
+
+The document is perforce an abstraction; the specific representation of that document, through the use of an ontological protocol, acts as a lens on that document. The transfer of the representation from one agent to another is called representational state transfer (or REST), with the awareness that what is transferred may not necessarily have the full nuance of the original state (there is information that is private to the sender that may not get captured in the representation).  
+
+--- 
+
+### Semantic and Structural Transformation
+
+*Type: Operational concept* 
+
+A semantic transformation is the transformation from one representation of a system's state (its document) to another. Two representations are considered to be isomorphic if there exists a transformation that can convert from the first to the second and another that can convert from the second to the first without significant loss of semantic content (AxT => A', A'xT => A). RDF 1.2 formats are specifically designed to be isomorphic under transformation for the same structural schema and taxonomy. This is considered a **structural transformation**. However, mappings between taxonomic classifications (such as between two taxonomies) will generally not be fully isomorphic - there is ambiguity in semantic resolution. This is called a **semantic transformation**.
+
+Given the isomorphic nature of RDF-1.2, if you are sharing a common taxonomy, this reduced the complexity of such transformations primarily to structural realignment. This is where a representation such as SHACL may prove advantageous, as it is generally easier to map shape structures from one representation to the next (typically through tools like R2RML, Tarql, and Schema-Anything) and language model implementations built around transformers are quite adept at making such transformations (albeit with the requirement to review that the transformations are in fact as close to isomorphic as possible). Logical transformations (such as OWL) are more complicated, as not all OWL transformations cleanly map to irreducible inverse transformations (again, formal evidence of this needs to be given). (obverse, rather than inverse) property associations become fairly critical.
+
+This is likely to be a subject of debate within this community working group.
+
+---
+
+### Formal Ontological Representational State Transfer (FOREST)
+
+*Type: Operational concept* 
+
+This is a state transformation mechanism in which data being transferred contains either its corresponding SHACL+Taxonomy or (more likely) contains linked references to the shapes and taxonomies. 
+
+--- 
+
+### Semantic Transformation Lookup (STL)
+
+*Type: Operational concept* 
+
+In a semantic transformation lookup, there exists an identifier that can resolve as a document that contains both structural and semantic transformations between two specific ontologies. By specifying the STL key, you can resolve the transformation mechanism of data from one ontology to map to another ontology. The exact mechanism for such a transformation is largely system-dependent - it may be algorithmic, or it may be specified by an AI service. What STL does is provide a resolution mechanism for identifying such mappings, thereby reducing the overall complexity of transformations and better optimising complex schema transformations over time.
+
 ### Validation
 
 *Type: Operational concept*
