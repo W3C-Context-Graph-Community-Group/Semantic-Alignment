@@ -461,6 +461,8 @@ This is a state transformation mechanism in which data being transferred contain
 
 In a semantic transformation lookup, there exists an identifier that can resolve as a document that contains both structural and semantic transformations between two specific ontologies. By specifying the STL key, you can resolve the transformation mechanism of data from one ontology to map to another ontology. The exact mechanism for such a transformation is largely system-dependent - it may be algorithmic, or it may be specified by an AI service. What STL does is provide a resolution mechanism for identifying such mappings, thereby reducing the overall complexity of transformations and better optimising complex schema transformations over time.
 
+---
+
 ### Validation
 
 *Type: Operational concept*
@@ -471,6 +473,21 @@ Validation in this architecture is performed by the **Context Graph Control Plan
 
 > **\[OPEN\]** The relationship between validation in this architecture and the W3C SHACL Recommendation's definition of *conformance* should be specified precisely. In particular, the group should address how the three-value logic of SHACL (conformant, non-conformant, indeterminate) maps onto the binary commit/report model described here.
 
+---
+
+### Coherence Score
+
+*Type: Operational concept* 
+
+A coherence score is a measure of the lossiness of semantic meaning within a semantic transformation. The mechanism for determining that coherence score is TBD.
+
+---
+
+### Coherence Cost
+
+*Type: Operational concept* 
+
+The coherence cost is a measure of the cost involved in performing a semantic transformation. the mechanism for determining the coherence cost is TBD.
 ---
 
 ### Verifiable Credentials
