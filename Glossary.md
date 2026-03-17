@@ -488,6 +488,7 @@ A coherence score is a measure of the lossiness of semantic meaning within a sem
 *Type: Operational concept* 
 
 The coherence cost is a measure of the cost involved in performing a semantic transformation. the mechanism for determining the coherence cost is TBD.
+
 ---
 
 ### Verifiable Credentials
