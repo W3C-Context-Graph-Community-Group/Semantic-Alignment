@@ -56,6 +56,21 @@ Coherence is the primary quantity that the **Context Graph** is designed to meas
 
 ---
 
+### Codebook
+
+*Type: Foundational concept*
+
+A codebook is the complete mapping a system maintains between its symbols and their referents. The term originates in Shannon's foundational paper on information theory (Shannon, 1948), where it denotes the shared encoding scheme that sender and receiver must possess for communication to succeed. Shannon's model presupposes that the codebook is shared. The Coherence Protocol exists because, at system boundaries, this presupposition frequently does not hold — and no quantity computable from Shannon's model can detect when it fails.
+
+A codebook is not merely a lookup table. It is the full set of assumptions under which a system interprets data: field definitions, format conventions, reference frames, units, locale, regulatory jurisdiction, and any other condition that determines how a symbol maps to its referent. A codebook may be formally expressed — as an ontology, a schema, a shapes graph, or a data dictionary. It may also be implicitly held — embedded in code, configuration, convention, or institutional practice that has never been externalised.
+
+The distinction matters because the Coherence Protocol is designed to operate at boundaries where codebooks have not been surfaced. Existing interoperability tools — ontology alignment, schema matching, context mediation, validation, etc. — require that both codebooks have already been externalised before reconciliation can begin. The coherence protocol operates at the layer below: detecting whether that precondition holds, and providing the structured process (Ask) for surfacing codebooks when it does not.
+
+A system that has surfaced its codebook onto the Canonical Claim Form has made its assumptions available for comparison. A system that has not surfaced its codebook is in the default condition of most cross-system communication: its assumptions are invisible to the boundary, and no instrument the receiving system possesses can detect the divergence.
+
+The responsibility of the Coherence Protocol is to surface the **uncertainty** of shared codebooks, and resolution traces to **minimize uncertainty** of shared codebooks to minimize future costs of coherence. 
+---
+
 ### Context
 
 *Type: Foundational concept*
@@ -65,6 +80,16 @@ Context is structured uncertainty at a system boundary: the set of conditions, a
 Within the graph architecture, a context is additionally represented as a specific graph configuration forming a testable pattern against which **validation** and **rule** initiation can be triggered. These two senses — the boundary-level information gap and the graph-level structural pattern — are related: the pattern is the local representation of the gap.
 
 > **\[OPEN\]** The relationship between the information-theoretic sense (boundary gap) and the structural sense (graph pattern) should be formalised. Are these the same concept at different levels of abstraction, or two distinct concepts that share a name?
+>
+> **Proposed resolution:** They are related but distinct, and the distinction should be named:
+ 
+- **Context (facet)** — the resolution layer of the **Four Facets Model**: the accumulating record of what was missing, what was asked, what was resolved, and what remains open across Data, Meaning, and Structure at a given **boundary**. This is the information-theoretic sense. It is asymmetric with respect to the other three facets and has the recursive property: each resolution may reveal further incompleteness.
+ 
+- **Context graph (structure)** — the named graph that *houses* Context entries alongside Data, Meaning, and Structure entries, structured as a **hypergraph** with **reification** and an append-only event log. This is the structural sense. A context graph is the container; Context (facet) is one category of what the container holds.
+
+- **Context (concept)** - this is the information theoretic approach of gaps of information that change an internal model's (human, system, or AI) understanding or interpretation of state and/or events.
+ 
+The ambiguity is productive at the conceptual level — a context graph is *about* context in the same way that a knowledge graph is *about* knowledge. But at the specification level, the two senses must be distinguished to avoid circular definitions.
 
 ---
 
@@ -100,6 +125,26 @@ The nesting of holons is recursive: a holon may contain other holons to any dept
 > **\[NOTE\]** The term *holon* originates with Arthur Koestler (*The Ghost in the Machine*, 1967) and has prior use in philosophy of mind and systems theory. Its adoption here is for precision, not provocation — specifically, the dual whole/part property has no clean equivalent in standard graph vocabulary. Alternatives considered included *scope*, *system boundary*, and *named graph boundary*; none captured the recursive compositional property adequately.
 
 ---
+### Intent Map
+
+An Intent Map is a declarative configuration that defines what triggers each protocol action at a given boundary. It specifies the patterns that produce Halt (e.g., PII in a query), Ask (e.g., ambiguous temporal references requiring user confirmation), and contextual enrichment (e.g., structured entity selection). Intent Maps are boundary-specific and may be configured for real-time interactions such as browser-based or application-level interfaces.
+
+An Intent Map is also language agnostic: YAML, JSON, etc.
+
+> **\[OPEN\]** Needs a semantic representation defined.
+---
+
+### Ignorance of Incoherence
+
+*Type: Foundational concept*
+
+Ignorance of incoherence is the state in which a system acts on ambiguous information with full confidence because no instrument it possesses can distinguish the ambiguity from agreement. Semantic superposition describes the state of the information. Ignorance of incoherence describes the state of the system.
+
+This is the condition the Coherence Protocol is built to detect — not incoherence itself (which existing tools can address when both codebooks are available), but the absence of any signal that incoherence exists. A system in ignorance of incoherence reports success. Its metrics are clean. Its confidence is high. Its answer may be wrong.
+
+The condition arises whenever a symbol crosses a boundary and the codebook that gives it meaning stays behind. The receiving system silently collapses the ambiguity using its own defaults — its own timezone, its own definitions, its own reference frame — without verifying that the sender shares them. Shannon's channel metrics confirm perfect transmission. The coherence protocol finds the interpretation unresolved. Both are correct. They measure different things.
+
+---
 ### Ontology, Protocol, or Both?
 
 *Type: Foundational concept*
@@ -120,6 +165,19 @@ Your context graph reflects your system's state. My context graph reflects mine.
 This is similar to the mercury pool reflecting the stars metaphor: the local boundary (mercury surface) can only reflect its outer boundary (stars), but it doesn't directly touch or have any ownership of it.
 The pathways between local graphs — every Ask, every resolution trace, every Context entry that flows across a boundary — are not data transfers. They are pathways to reconciliation of mutual understanding. Each one narrows the gap between what your (sender) graph reflects (a local ContextEvent can include boundaries of many systems) and what my (receiver) reflects. The bit-level accuracy is what makes that narrowing measurable. You can say: this boundary had 3 bits of divergence, we resolved 2 through Asks, 1 remains open, the protocol action is Ask or Halt depending on your threshold.
 
+---
+
+
+
+### Semantic Superposition
+
+*Type: Foundational concept*
+
+Semantic superposition is the state in which a received signal admits multiple internally consistent interpretations, with no information in the signal itself to distinguish them. The term is deliberately chosen: like quantum superposition, the ambiguity is not resolved by observation of the signal alone — it requires a measurement that acquires information from outside the received data.
+
+A date string 03/01/2026 is in semantic superposition: it is simultaneously March 1st and January 3rd, and no computation on the string can determine which. A field labelled time is in semantic superposition when two systems define it differently — one as "order placement time," the other as "order receipt time" — and no schema validation or type check can detect the divergence.
+
+Semantic superposition is collapsed through the Coherence Protocol's Ask action: a measurement that acquires information from the other side of the boundary. Each Ask narrows the set of possible interpretations. When the set reduces to one, the superposition has collapsed — not by assumption, but by measurement. The record of how the superposition was collapsed is Context.
 ---
 
 ### Signal
@@ -147,6 +205,35 @@ A signal that passes all three gates generates a **context event**. A signal tha
 A boundary is the interface between two **holons** across which **signals** are exchanged and **coherence** is measured. Boundaries are the primary sites of contextual misalignment in the architecture: terms, policies, and data structures that are well-defined within a holon may be ambiguous, absent, or contradictory when they cross a boundary into a different holon's interpretive context.
 
 > **\[OPEN\]** The group should specify whether a boundary is itself a named graph, a set of constraints, a trust domain definition, or some combination of these. The relationship between boundaries and W3C ODRL policies, and between boundaries and verifiable credential scopes, should also be addressed.
+
+---
+
+
+### Canonical Claim Form
+
+*Type: Structural component* **\[PLACEHOLDER\]**
+
+The canonical claim form is the irreducible projection surface onto which any system can externalise its **codebook** for comparison at a **boundary**. It is a five-column structure:
+ 
+| Column | Description |
+|--------|-------------|
+| **id** | A subject identifier (URI): what entity is this about? |
+| **source** | An asserting party (URI): who makes this claim? |
+| **timestamp** | When was this claim asserted? |
+| **key** | A property identifier: what property is being claimed? |
+| **value** | The asserted value of that property. |
+ 
+Every **assertion** from any system, regardless of source format, reduces to a single row in this table. A JSON field is one row. A CSV cell is one row. An RDF triple with reification metadata decomposes into rows. A SHACL shape decomposes into one row per assertion. No column can be removed without losing information the **Coherence Protocol** requires.
+ 
+The **Four Facets Model** is encoded in the URN namespace of the `key` column: `urn:data:*`, `urn:meaning:*`, `urn:structure:*`, `urn:context:*`. One table, one log, self-organising by facet. The five columns are fixed. The namespace is open.
+ 
+The canonical claim form is deliberately technology-agnostic. It does not require RDF, SHACL, OWL, or any shared framework. A system can project onto it from a spreadsheet, a JSON document, a relational database, or a whiteboard. This is the property that distinguishes it from a shared ontology: an ontology requires prior agreement on terms; the canonical claim form requires only that both sides can articulate their own terms in a common structure.
+ 
+Within the W3C semantic web stack, the canonical claim form maps naturally to RDF 1.2 with reifier annotations: each row is a reified triple whose annotation carries the source, timestamp, and facet classification. The CGA Foundation specification provides the richest and most rigorous expression of the canonical claim form within this stack. The canonical claim form itself is the specification-level abstraction that enables implementations outside the stack.
+ 
+See also: **Codebook**, **Four Facets Model**, **Context Graph**.
+ 
+> **[OPEN]** The group should specify: (a) the normative URI scheme for facet namespaces; (b) whether the five-column form is the wire format, the logical model, or both; and (c) the formal mapping between canonical claim rows and RDF 1.2 reified triples, ensuring round-trip fidelity.
 
 ---
 
@@ -255,6 +342,8 @@ A resolution trace is the persistent artefact produced by a **context graph** in
 
 ## Part 3: Operational Concepts
 
+
+
 ### Agency
 
 *Type: Operational concept*
@@ -277,6 +366,66 @@ An authentication event is a **signal** whose content is a cryptographic credent
 
 > **\[OPEN\]** The group should specify the relationship between authentication events and the W3C Verifiable Credentials Data Model (VC-DATA-MODEL). If this architecture adopts VC as the credential standard, that alignment should be stated normatively; if it diverges, the reasons should be documented.
 
+
+---
+
+
+### Coherence Gate
+ 
+*Type: Operational concept*
+ 
+A coherence gate is a decision point in the Coherence Protocol where the current state of a boundary is evaluated and exactly one of three protocol actions is produced: Halt, Ask, or Act. The gate is the mechanism by which measured uncertainty is converted into a protocol action.
+
+---
+
+
+### Coherence Gate: Ask
+ 
+*Type: Operational concept*
+ 
+An Ask is the **Coherence Protocol**'s mechanism for acquiring information that cannot be computed from data the receiving system already holds. It is the protocol action triggered when **semantic superposition** has been detected and the ambiguity is reducible — that is, when a specific question can be formulated whose answer would narrow the set of possible interpretations.
+ 
+Ask is a measurement in the formal sense: it acquires data from the other side of the **boundary** that no inference on the received **signal** can produce. This is the distinction between inference — reducing uncertainty from data you have — and measurement — acquiring data you cannot compute. No computation on the string `09/24/2026` can determine whether it means "time the order was placed" or "time the order was fulfilled." The answer is in the sender's **codebook**, on the other side of the boundary.
+ 
+Every Ask produces **Context**: a resolution record that becomes part of the **context graph**'s working memory. Each resolution may reveal further incompleteness, requiring further Asks — this is the recursive property that gives Context its accumulating character.
+ 
+Within an RDF/SHACL implementation, an Ask may take several forms: dereference both URIs to their documentation pages and compare tagged definitions; submit both definitions to a semantic comparator; or query a shared registry. Each form acquires information not present in the original string comparison. Each produces a **Context Event** that is recorded in the graph.
+ 
+See also: **Halt**, **Act**, **Semantic Superposition**, **Context**.
+ 
+---
+ 
+### Coherence Gate: Halt
+ 
+*Type: Operational concept*
+ 
+Halt is the **Coherence Protocol** action indicating that a decidable condition required to proceed is not satisfied, and no further protocol action at this **boundary** can resolve it. Halt is triggered when:
+ 
+- **Codebooks** cannot be surfaced (the boundary is unmeasurable).
+- Measured uncertainty cannot be reduced below threshold (the divergence is irreducible).
+- A deterministic system rule is violated (e.g., PII in a query that prohibits it).
+- Any other condition the boundary context requires that has not been met and cannot be met through further exchange.
+ 
+The reasons for Halt are open-ended and context-dependent. The action is closed: do not proceed. For example, if PII is not allowed to be sent to an agent in a query, then doing so is incoherent with system policy — the protocol's recognition that acting on unverified information carries risk that the system cannot currently bound.
+ 
+A system that has never run the **Coherence Protocol** at a boundary is in a state where the appropriate action is Halt — but no instrument tells it so. It proceeds in **ignorance of incoherence**.
+ 
+See also: **Ask**, **Act**, **Coherence Protocol**.
+ 
+---
+ 
+### Coherence Gate: Act
+ 
+*Type: Operational concept*
+ 
+Act is the **Coherence Protocol** action indicating that all decidable conditions are met and measured uncertainty is below the applicable threshold. The **boundary** is coherent. Proceed.
+ 
+Act is reached only after sufficient **Context** has been accumulated through **Ask** actions (or was already available) such that comparisons on **Meaning**, **Structure**, and **Data** are well-defined and have been evaluated. A system that reaches Act has not merely received data — it has verified that the **codebook** that produced the data is sufficiently aligned with the codebook that will interpret it, within the current risk tolerance.
+ 
+The distinction between Act-after-measurement and Act-by-default is the core contribution of the protocol. Before the protocol, a receiver may have zero uncertainty and a potentially wrong answer. After the protocol, a receiver has zero uncertainty and a verified answer. The difference is that **Context** now contains a complete record of resolutions.
+ 
+See also: **Ask**, **Halt**, **Coherence**.
+ 
 ---
 
 ### Utterance Event
@@ -299,6 +448,19 @@ The Coherence Protocol defines:
 - How **holons** at different levels of the hierarchy exchange resolution status.
 - The format and required fields of the resolution trace records that survive boundary crossings.
 - Safe stopping conditions: what the system must do when coherence cannot be restored to a sufficient level for action.
+
+
+**Protocol actions.** The Coherence Protocol produces exactly one of three actions at each boundary evaluation:
+ 
+- **Halt**: a decidable condition required to proceed is not satisfied. No further protocol action at this boundary can resolve it.
+- **Ask**: uncertainty is measurable and reducible. The divergence has been identified and can be narrowed through further exchange between systems. Each Ask produces new **Context**.
+- **Act**: all decidable conditions are met and measured uncertainty is below threshold. The boundary is coherent. Proceed.
+ 
+These three actions are exhaustive and mutually exclusive by construction. Every boundary evaluation satisfies exactly one of: (a) some decidable condition unsatisfied (Halt), (b) all surfaced with reducible uncertainty (Ask), or (c) all conditions met and uncertainty below threshold (Act).
+ 
+**Measurement, not classification.** The protocol does not classify boundaries into static categories. It evaluates decidable conditions dynamically at each boundary and at each moment of contact. A boundary that was previously coherent (Act) may require re-evaluation if the underlying systems have changed — terminology drift, schema evolution, personnel turnover. **Context** is not a one-time cost; it is a living record that must be maintained as systems evolve.
+
+**Configurable via Intent Maps** - What triggers an ACT/ASK/HALT, and what uncertainty measures are, and what deterministic rules may be can be configured for real-time interactions (for example in a browser or application) with an Intent Map.
 
 ---
 
@@ -457,5 +619,58 @@ The following existing standards are relevant to this specification. Alignment p
 | ISO 5087 | Information model | **\[OPEN\]** — Four Facets Model should be compared |
 
 ---
+
+
+ 
+## Appendix C: The Architectural Relationship
+ 
+The Context Graph standard comprises two layers that are complementary, not competing:
+
+**The protocol layer** defines what must be measurable at any system boundary: the Four Facets Model and its dependency ordering, the Canonical Claim Form as the universal projection surface, the Coherence Protocol with its Halt/Ask/Act actions, and the formal status of Ask as measurement (acquiring information that no computation on received data can produce). This layer is *technology-agnostic*. It can be expressed in RDF, JSON, a spreadsheet, or on a whiteboard.
+
+**The representation layer** provides the formal vocabulary, event model, and architectural patterns for expressing context graphs within the W3C semantic web stack: RDF 1.2 named graphs with reifier annotations, SHACL shapes as the constraint and rule language, SPARQL as the query mechanism, SKOS for vocabulary alignment, DIDs for identity, and Verifiable Credentials for trust. This layer — the Context Graph Architecture (CGA) — brings the full power of three decades of semantic web standards to bear on boundary coherence.
+
+The two layers need each other. The protocol layer defines what to measure. The representation layer defines how to express, store, query, and govern those measurements at scale. Systems that adopt the full CGA stack get the richest and most rigorous context graph capability. Systems outside that stack can still participate in boundary measurement through the protocol layer alone.
+
+Both layers are part of the same standard. Neither replaces the other. The protocol gives the standard its reach. The representation gives it its depth.
+ 
+---
+
+## Appendix D: The Relationship to Context Engineering & Context Windows
+ 
+Context Engineering is the practice of assembling, curating, and structuring the information that goes into an AI agent's context window — the fixed-size buffer of what an agent can "see" at any given moment. It encompasses prompt design, retrieval-augmented generation (RAG), memory management, and tool selection. The goal is to give the agent the right information at the right time so it can reason well.
+ 
+This is valuable work. But it addresses the *supply* side of context without measuring the *coherence* side.
+ 
+An agent's context window may contain a field from System A, a definition from System B, and a policy from System C. Context engineering assembled them. But did those three systems mean the same things by the same terms? Was the field formatted in the convention the agent assumes? Does the policy's definition of "revenue" match the database's? No step in the context engineering pipeline currently answers these questions — because no standard instrument exists to ask them.
+ 
+Context engineering curates what an agent receives. The coherence protocol measures whether what the agent received is coherent across the systems it came from. Context engineering is the supply chain. The coherence protocol is quality assurance at the boundary.
+ 
+They are complementary. Better context engineering reduces the surface area the protocol needs to measure. The protocol catches what context engineering — no matter how well designed — cannot anticipate: the silent misalignment that only becomes visible when two codebooks are compared at the boundary.
+ 
+---
+
+## Appendix E: Open World vs. Open System (important for aligning with the Semantic Community)
+
+
+The word "open" means two different things in this space, and conflating them causes persistent confusion.
+ 
+**Open World Assumption (OWA)** is a property of *expression*. In RDF and OWL, the absence of a statement does not mean the statement is false — only that it is unknown. This is epistemically correct for knowledge representation: just because a graph doesn't record a researcher's co-authors doesn't mean the researcher has none. The Open World Assumption governs what a system can *say* and what it can *infer from silence*.
+ 
+**Open System** is a property of *boundaries*. An open system is one where you cannot assume the other side shares your framework, your ontology, your vocabulary, or even your data format. Most real-world boundaries between independently designed systems are open in this sense. An AI agent hitting ten APIs doesn't know which ones use RDF. A merged company's data systems don't share ontologies. Internal terminology drifts.
+ 
+These are different concepts at different layers:
+ 
+| | Open World Assumption | Open System |
+|---|---|---|
+| **What is "open"** | Expression — what can be represented | Boundaries — what can be assumed about the other side |
+| **Governed by** | OWL, RDF semantics | System design, organizational reality |
+| **The assumption** | Absence of a statement ≠ falsehood | Absence of a shared codebook = the default condition |
+| **Tools that work here** | OWL reasoning, SPARQL, SHACL | The coherence protocol |
+ 
+The phrase "RDF to RDF is not closed" is true under the Open World Assumption — RDF is open in what it can express. But "RDF to RDF" is a closed system in the boundary sense: both sides have already agreed to use RDF. The moment one side of the boundary isn't using RDF, the tools that assume RDF-to-RDF have nothing to operate on — and they don't report that condition.
+ 
+The Semantic Web's tools are powerful precisely because they operate within a shared framework. The coherence protocol operates at the layer below: detecting whether a shared framework exists at this boundary, and providing a structured process for building one when it doesn't. It does not replace semantic standards. It measures whether their preconditions are met.
+ 
 
 *Last updated: 2026-03-07. Maintained by the W3C Context Graph Community Group.*
