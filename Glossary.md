@@ -426,7 +426,163 @@ Credentials are submitted as part of an **authentication event**. They remain ac
 > **\[OPEN\]** This specification uses the term *verifiable credentials* in a sense compatible with the W3C Verifiable Credentials Data Model (VC-DATA-MODEL 2.0), but the precise alignment — including which VC proof mechanisms are required, which optional features are in scope, and how VC expiry maps to session termination — should be specified normatively before this section is considered stable.
 
 ---
+## Part 4: Semantic Commitments
 
+
+### 4.1 Overview
+
+The W3C Context Graph Community Group operates under five semantic commitments. Together they specify what the protocol is trying to achieve, why local interpretation is necessary, what honest self-reporting looks like, why no prior agreement is required, and why the community maintaining this standard must apply the same discipline to itself. 
+
+This is the operational practice of holonic thinking: a context graph continually finds and resolves the knowledge gaps any system has — through inference, deterministic methods, or human judgment. The same principles that govern honest measurement in digital systems apply in physical and organizational ones.
+
+The five commitments in this section are the conditions under which trust becomes verifiable rather than assumed — grounded in honest measurement, local sovereignty, and decisions whose rationale is fully expressible on the canonical claim surface.
+
+---
+
+## 4.2 Semantic Honesty
+
+*Term introduced by Kurt Cagle, Context Graph Architecture §1.3.*
+
+The architecture makes its epistemic commitments visible. Divergence between a representation and the world it describes is named, detectable, and auditable — not an implementation error. The architecture does not pretend to more certainty than it has.
+
+Semantic honesty is the goal. The coherence protocol is the instrument that makes it verifiable. A system that asserts its commitments without measuring whether the receiving system shares them is not being honest — it is being confident.
+
+---
+
+## 4.3 Semantic Sovereignty
+*Semantic Commitments*
+
+**Definition.** A system retains the right to define and interpret its own terms locally. No external ontology can resolve meaning at a boundary without the local system's participation.
+
+Semantic sovereignty is not an argument against shared ontologies — they work well within communities that have agreed to use them. It asserts that this scope has a boundary, and that boundary is exactly where the coherence protocol operates.
+
+Contextual misalignment is not a failure of standardization. It is the normal condition at any boundary between independently designed systems. It requires a measurement instrument, not a coordination mandate.
+
+---
+
+## 4.4 Bounded Reflexivity
+*Semantic Commitments*
+
+**Definition.** A system honestly reports its current coherence state within the constraints of what has been measured, claiming nothing beyond what the protocol can verify.
+
+The protocol provides the *foundation* on which reflexive capabilities can be built. The five-column canonical claim form, the append-only context log, and the Halt/Ask/Act decision record give any system the substrate it needs to reason about its own coherence state.
+
+What a system does with that substrate — how it reasons about misalignment patterns, improves its Ask sequences, predicts future incoherence — is above the protocol layer. The protocol does not constrain those capabilities. It makes them possible by ensuring their inputs are honest.
+
+---
+
+## 4.5 Unilateral Activation
+*Semantic Commitments*
+
+Every prior interoperability standard requires both parties to have adopted it before it can function. The coherence protocol requires neither.
+
+One side can run the protocol unilaterally. The Ask acquires information from the other side regardless of whether the other side knows the protocol exists. The other side needs only to be able to answer a question.
+
+This is what makes the protocol a *measurement instrument* rather than a *coordination protocol*. A ruler measures a wall whether or not the wall knows it is being measured.
+
+**On full adoption.** If all systems adopted the protocol, they would share a common substrate — which would itself constitute a shared codebook. This is not a contradiction. It is the expected behavior of any successful standard. What distinguishes this protocol is that full adoption is never required for it to work. Partial adoption makes it faster. Full adoption makes it richer. Neither is a precondition.
+
+*Hypothesis: The more systems that adopt the Context Graph Architecture with the Coherence Protocol, the more capable these systems can be in reducing uncertainty of shared understanding.*
+
+---
+
+## 4.6 Semantic Openness
+*Semantic Commitments*
+
+
+
+**Definition.** This community treats its own vocabulary as subject to the same measurement discipline it applies to all boundaries. No term in this specification is exempt from the coherence protocol. The standard does not lock meaning — it provides the instrument to detect and record when meaning has changed.
+
+Standards create stability. But they also lock meaning — and a specification written for one community may carry different meaning when adopted by another. This is not a failure of standards. It is a structural property of open systems, and it applies equally to this protocol.
+
+Three terms that are not the same thing:
+
+**Open World Assumption** — a logical stance. Absence of a statement does not mean it is false, only unknown. Governs reasoning about incomplete knowledge within a model.
+
+**Open systems** — an architectural property. A system that interacts across boundaries it did not design, with parties it did not anticipate.
+
+**Semantic openness** — a governance commitment. The community maintaining this standard applies the coherence protocol to its own vocabulary rather than exempting itself from measurement.
+
+These are orthogonal. Conflating them produces communities that reason carefully about incompleteness and boundary interactions — and then treat their own vocabulary as immune to both.
+
+> Standards create the stability that makes coordination possible. Semantic openness ensures that stability does not become the new source of incoherence.
+
+The protocol implements all five simultaneously.
+
+---
+
+## 4.7 The Decision Dependency Chain
+*Operational Layer*
+
+Every decision made in response to measured uncertainty — a judgment, a policy, a rationale, an automated action, a human override — is itself a claim. It has a source, a timestamp, a key, and a value. It belongs on the canonical claim surface. It is subject to all five commitments.
+
+This is not optional. A decision process that operates above the protocol without leaving a claim record is not semantically honest. A policy that cannot be expressed as a claim cannot be audited. A rationale that lives only in a human's head cannot be sovereign, reflexive, or open. The canonical claim form is not just the substrate for measuring uncertainty — it is the substrate for everything the protocol produces in response to uncertainty.
+
+The decision dependency chain specifies the URN vocabulary available for this purpose. These are the cognitive primitives: the minimal operators through which any system — computational or human — can act on the context graph, record its reasoning, and participate in the coherence protocol.
+
+
+
+### Computational primitives — `urn:self:`
+
+Operations a system performs on its own context graph.
+
+| URN | Action |
+|---|---|
+| `urn:self:search:<query>` | Query the context graph for matching claims |
+| `urn:self:get:<claim-id>` | Retrieve a specific claim by identifier |
+| `urn:self:update:<claim-id>` | Write a resolution record to the context graph |
+| `urn:self:compare:<claim-id-a>:<claim-id-b>` | Run the four-facet gauge on two claims |
+| `urn:self:halt` | Record a Halt decision and its reason |
+| `urn:self:ask:<facet>` | Record an Ask and the facet being queried |
+| `urn:self:act` | Record an Act decision and its conditions |
+| `urn:self:math:<function>:input:<value>` | Apply a mathematical function to a claim value |
+
+The `urn:self:math:` namespace is open. Any function that operates on claim values — aggregation, normalization, entropy calculation, statistical comparison — can be expressed here without changing the substrate.
+
+---
+
+### Psychometric primitives — `urn:human-in-loop:`
+
+Signal contributed by a human participant. Structurally identical to any other claim — same five columns, same URN-namespaced key, same canonical form. The substrate does not distinguish between a sensor reading and a human judgment. Both are measurements.
+
+| URN | Signal |
+|---|---|
+| `urn:human-in-loop:agree` | Human confirms a resolution |
+| `urn:human-in-loop:disagree` | Human rejects a resolution — 1 bit, surfaced |
+| `urn:human-in-loop:rate:<value>` | Scalar rating of a claim or resolution |
+| `urn:human-in-loop:flag` | Surface a claim for human review |
+| `urn:human-in-loop:dislikes` | Negative preference signal |
+| `urn:human-in-loop:query-rate:<value>` | Frequency of queries — cognitive load signal |
+| `urn:human-in-loop:bits-per-query-avg:<value>` | Average information acquired per Ask — efficiency signal |
+
+The psychometric primitives are first-class measurements. A human disagreeing with a resolution is a 1-bit claim — `urn:human-in-loop:disagree` — with source, timestamp, and context. It enters the append-only log alongside every other claim. It can trigger a new Ask. It can change a protocol state from Act back to Ask. The human is in the loop structurally, not just philosophically.
+
+---
+
+### The chain
+
+These primitives operate under all five commitments simultaneously:
+
+```
+Semantic Honesty        — every decision record is visible and auditable
+        ↓
+Semantic Sovereignty    — every system records decisions in its own terms
+        ↓
+Bounded Reflexivity     — every record claims only what was measured
+        ↓
+Unilateral Activation   — any system can begin recording without agreement
+        ↓
+Semantic Openness       — the primitive vocabulary is extensible by the community
+```
+
+Any decision process — automated policy, human judgment, AI recommendation, regulatory rationale — that cannot be expressed through these primitives on the canonical claim surface is operating outside the protocol. The protocol does not prohibit that. It makes the gap visible.
+
+> What cannot be recorded cannot be audited. What cannot be audited cannot be honest.
+
+
+
+
+---
 ## Appendix A: Terms Under Discussion
 
 The following terms have been raised in group discussions but do not yet have agreed definitions. They are listed here to track open items.
