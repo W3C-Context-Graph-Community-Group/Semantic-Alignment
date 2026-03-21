@@ -402,6 +402,53 @@ The context system is a deterministic state machine: it accepts events from exte
 The state machine is deliberately mechanistic. It does not model internal motivation or autonomous decision-making; those concerns belong to external systems that interact with the control plane. The state machine can, however, invoke external agentic systems as part of rule execution through the defined protocol of the **Context Graph Control Plane**. The design intent is that the context system itself remains auditable, deterministic, and reproducible — a property that would be compromised by internal agency.
 
 ---
+### Tensor Substrate
+
+*Type: Operational concept*
+
+The Tensor Substrate is the mathematical and computational layer that 
+converts canonical claims into tensor representations for real-time 
+learning and inference. It is Layer 0 of the **Coherence Stack**, 
+operating beneath the **Context Graph** and providing the unified 
+substrate on which coherence measurements become computable.
+
+In operation, as claims are produced at a boundary crossing, the 
+Tensor Substrate derives uncertainty vectors from the five-column 
+claim form and spawns perceptrons trained on those vectors using 
+ACT / ASK / HALT as classification targets. Each perceptron trains 
+on the coherence scores produced across the four facets (meaning, 
+structure, data, context) using the step function as specified in 
+Tensor Logic (Domingos, 2025) — no softmax.
+
+Converged perceptron weights are stored back into the **Context 
+Graph** as canonical claims:
+
+| key | value |
+|---|---|
+| weight.0 | learned weight for dimension 0 |
+| weight.1 | learned weight for dimension 1 |
+| bias | learned bias term |
+| converged.epoch | epoch at convergence |
+| boundary.facet | facet this perceptron was trained on |
+
+This makes the Context Graph not only an auditable event log but a 
+cumulative learning substrate: every boundary crossing contributes 
+trained weights that are retrievable for inference at subsequent 
+crossings. The mechanism is holon-friendly — weights trained at a 
+child holon are expressible as claims and composable upward — and 
+scale-free, as the claim form is identical at every level of the 
+holon hierarchy.
+
+See also: **Coherence Stack**, **Context Graph**, **Coherence 
+Protocol**, **Resolution Trace**.
+
+> **[OPEN]** The formal model for weight retrieval, staleness 
+> detection, and cross-holon weight composition should be specified 
+> before this section is considered normative. The relationship 
+> between stored perceptron weights and the Tucker decomposition of 
+> the meaning facet tensor should also be addressed.
+
+---
 
 ### Document
 
