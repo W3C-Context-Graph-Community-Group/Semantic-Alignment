@@ -28,6 +28,32 @@ Within each section, entries are ordered alphabetically. Cross-references to oth
 
 ## Part 1: Foundational Concepts
 
+
+### Ask (Protocol Action)
+ 
+*Type: Operational concept*
+ 
+Ask is one of three protocol actions (along with **Halt** and **Act**). It is triggered when uncertainty is measurable and reducible — a divergence has been identified and can be narrowed through further exchange.
+ 
+Ask is a measurement in the formal sense: it acquires information that cannot be computed from the data the receiver already holds. This is the distinction between inference (reducing uncertainty from data you have) and measurement (acquiring data you cannot compute). The answer to an Ask is not in the received data — it is in the sender's **codebook**, on the other side of the **boundary**.
+ 
+Every Ask produces **Context** — a resolution record that becomes part of the protocol's working memory. This new Context may reveal further incompleteness, requiring further Asks. This is the recursive property: Context is the protocol's working memory, and each resolution may reshape what remains to be resolved.
+ 
+Ask may take several forms, operating as a natural resolution cascade:
+ 
+- **Level 1 — String equality:** $O(1)$, catches exact matches and obvious mismatches.
+- **Level 2 — URI dereferencing:** follow the link to a documentation page, compare tagged definitions.
+- **Level 3 — Semantic evaluation:** human, AI, or domain-expert judgment.
+ 
+Each level is more expensive and acquires more information. The protocol does not prescribe which level to use — it prescribes the dependency ordering and records every resolution as Context.
+ 
+> **\[NOTE\]** The existing charter entry for Protocol Actions lists Act, Ask, and
+> Halt. This entry provides the formal definition of Ask as measurement, which
+> is the core operation that distinguishes the coherence protocol from static
+> validation systems.
+ 
+---
+
 ### Assertion
 
 *Type: Foundational concept*
@@ -42,17 +68,62 @@ A set of assertions constitutes a **graph**. Throughout this document, all refer
 
 ---
 
+### Codebook
+ 
+*Type: Foundational concept*
+ 
+A codebook is the complete mapping a system maintains between its symbols and their referents — not merely a lookup table, but the full set of assumptions under which the system interprets data. This includes the semantic definitions it assigns to field names, the structural conventions it applies to formats, and the contextual prerequisites it assumes but may not externalize.
+ 
+Every framework that minimizes uncertainty — Shannon's channel coding, active inference, Bayesian decision theory — presupposes that sender and receiver share a codebook. When this assumption is not verified, the receiver may interpret data using a different codebook than the sender intended, with no signal of any kind indicating that ambiguity exists.
+ 
+The coherence protocol decomposes a codebook into three **comparison facets** (Data, Meaning, Structure) and a **resolution layer** (Context). The **canonical claim form** is the surface onto which any system can project its codebook for comparison.
+
 ### Coherence
 
 *Type: Foundational concept*
 
-Coherence is a measurable property of a system boundary: the degree to which the meaning, structure, data, and context required for a specific intent are sufficiently aligned for the current risk tolerance at that boundary.
+Coherence is the state achieved when all necessary Context has been surfaced such that comparisons on Meaning, Structure, and Data are well-defined and have been evaluated. Two systems are coherent when the Context layer contains sufficient resolutions that no remaining ambiguity in Meaning, Structure, or Data is invisible to either party.
+Coherence is not a pre-existing condition discovered by inspection — it is the product of a measurement process. Two systems with identical codebooks that have not verified their alignment are not coherent in this sense. The protocol for making invisible context mutual and surfacable in an organized sequence is what produces coherence — this is why we call it a coherence protocol.
+When coherence is high, systems can act on shared information with confidence. When coherence is absent, the gap between systems is consequential — and, critically, may be invisible to both parties. This condition is distinct from data quality problems and schema errors; it is a structural property of boundaries between systems that operate under different assumptions.
 
-When coherence is high, systems can act on shared information with confidence. When coherence is low, the gap between local and global state is consequential — the same term, the same data, or the same structure may produce different outcomes depending on which system interprets it. This divergence is not a data quality problem and not a schema error; it is a structural property of boundaries between systems that operate under different assumptions.
+[NOTE] The key change: coherence is defined as an achieved state (the product of measurement), not a pre-existing degree (a score to be discovered).
+This has implications for the [OPEN] question about a formal scoring model: the score is not "how coherent are we" but "how complete is the Context layer" — i.e., how many required resolutions have been recorded vs. how many remain open. The scoring model follows from the resolution layer, not from an independent metric.
+---
 
-Coherence is the primary quantity that the **Context Graph** is designed to measure and, through the **Coherence Protocol**, to reduce.
 
-> **\[OPEN\]** The group should define a formal scoring model for coherence: what are the observable inputs, what scale is used, and how does coherence compose across nested **holons**?
+### Comparison Facet
+ 
+*Type: Foundational concept*
+ 
+A comparison facet is one of the three dimensions of a **codebook** that can be directly compared across systems: **Data**, **Meaning**, and **Structure**. Each comparison facet contributes up to 1 bit of measurable boundary uncertainty (match or mismatch).
+ 
+Comparison facets are distinguished from the **resolution layer** (Context). A comparison on Meaning or Structure is only valid when Context has been sufficiently accumulated. A comparison on Data is only interpretable when Meaning and Structure are aligned. This dependency ordering is the structural principle of the **Four Facets Model**.
+
+---
+
+
+### Canonical Claim Form
+ 
+*Type: Structural component*
+ 
+The canonical claim form is the irreducible five-column substrate onto which any system can project its **codebook** at the moment of contact, requiring no prior agreement on terms. A claim is a tuple:
+ 
+| Column | Question it answers |
+|--------|-------------------|
+| **id** | What entity is this about? |
+| **source** | Who makes this claim? |
+| **timestamp** | When? |
+| **key** | What property? |
+| **value** | What assertion? |
+ 
+Every assertion from every system, regardless of source format, reduces to a single row. A JSON field is one row. A CSV cell is one row. A SHACL shape decomposes into one row per assertion. The facet is encoded in the URN namespace of the key (`urn:data:`, `urn:meaning:`, `urn:structure:`, `urn:context:`). The five columns are fixed. The URN namespace is open.
+ 
+The canonical form is not a fixed schema. Neither side must adopt the other's representation. Each system projects its own codebook onto the five-column surface at the moment of contact. The surface assembles on demand — it is *liquid*, taking the shape of the boundary rather than imposing a shape on it. This is the property that distinguishes the canonical form from a shared ontology: an ontology requires prior agreement on terms; the canonical form requires only that both sides can project onto the same surface.
+ 
+> **\[NOTE\]** The canonical claim form is referenced in the charter (Deliverable 3:
+> "The Coherence Protocol requires all boundary inputs to conform to the canonical
+> claim form (id, source, timestamp, key, value) as specified by the Syntax &
+> Serialization committee.") This entry provides the formal definition.
 
 ---
 
@@ -60,11 +131,12 @@ Coherence is the primary quantity that the **Context Graph** is designed to meas
 
 *Type: Foundational concept*
 
-Context is structured uncertainty at a system boundary: the set of conditions, assumptions, and prerequisites whose absence or misalignment prevents valid interpretation of a **signal** by a receiving system. Context is not metadata, not a linguistic property of terms, and not noise. It is the information-theoretic gap between what a sender encodes and what a receiver requires in order to act correctly on that encoding — formalised in the Shannon sense of sender, receiver, channel, signal, and uncertainty.
+Context is the resolution layer for any incompleteness in any other facet. When Meaning is ambiguous, the resolution is Context. When Structure is underspecified, the resolution is Context. When neither Meaning nor Structure can be evaluated because reference frames have not been established, the prerequisite information is Context.
+Context is not a fourth kind of information alongside Data, Meaning, and Structure — it is the structured record of what was missing, what was asked, what was resolved, and what remains open across all three. It is asymmetric with respect to the other facets: Data, Meaning, and Structure describe what is being communicated; Context accumulates the resolutions required to interpret them. A match on Meaning or Structure without surfaced Context is unverifiable — not because Context is a separate dimension that also needs matching, but because the comparisons on Meaning and Structure are not yet well-defined.
+Context is the only facet with a recursive property. Each round of the protocol produces new Context that may reveal further incompleteness in another facet. The accumulating structure of these dependencies forms a context graph — the state space the protocol traverses on its way to coherence or halt.
 
-Within the graph architecture, a context is additionally represented as a specific graph configuration forming a testable pattern against which **validation** and **rule** initiation can be triggered. These two senses — the boundary-level information gap and the graph-level structural pattern — are related: the pattern is the local representation of the gap.
-
-> **\[OPEN\]** The relationship between the information-theoretic sense (boundary gap) and the structural sense (graph pattern) should be formalised. Are these the same concept at different levels of abstraction, or two distinct concepts that share a name?
+[NOTE] This revision addresses the [OPEN] question in the current entry:
+"Are the information-theoretic sense (boundary gap) and the structural sense (graph pattern) the same concept at different levels of abstraction, or two distinct concepts that share a name?" Under this framing, they are the same concept: the graph pattern is the accumulated record of resolutions to the boundary gap. The gap is what is missing. The pattern is what was surfaced to fill it. Context is the layer that connects them.
 
 ---
 
@@ -72,18 +144,25 @@ Within the graph architecture, a context is additionally represented as a specif
 
 *Type: Foundational concept*
 
-The Context Graph architecture assigns identity and structure to all atomic units of contextual information using four orthogonal facets:
-
-| Facet | Description |
-|-------|-------------|
-| **Data** | The raw informational content of the unit. |
-| **Meaning** | The semantic interpretation of that content within a given vocabulary or ontology. |
-| **Structure** | The constraints and relationships governing how the unit relates to others. |
-| **Context** | The boundary conditions and prerequisites required for valid interpretation. |
-
-Every **context event**, **assertion**, and **resolution trace** can be characterised in terms of all four facets. The model is intended to be general enough to apply across domains and agnostic to any specific technology stack.
-
-> **\[OPEN\]** The mapping between the Four Facets Model and existing foundational models (e.g. the FAIR principles, the ISO 5087 information model, the W3C Data Catalog vocabulary) should be documented to situate the model in the wider standards landscape.
+The Context Graph architecture decomposes every codebook into three **comparison facets** and one **resolution layer**:
+ 
+| Facet | Type | Description |
+|-------|------|-------------|
+| **Data** | Comparison facet | The raw informational content — what Shannon delivers. |
+| **Meaning** | Comparison facet | The semantic interpretation — what the value refers to within a given vocabulary or ontology. |
+| **Structure** | Comparison facet | The schema, constraints, and encoding rules — how the value is formatted and how it relates to others. |
+| **Context** | Resolution layer | The accumulated resolutions of incompleteness in the other three — what was missing, what was asked, what was resolved. |
+ 
+The facets are not orthogonal. They obey a dependency ordering:
+ 
+**Context → Meaning → Structure → Data**
+ 
+Data comparison is semantically void unless Meaning and Structure are aligned. Meaning and Structure comparisons are unverifiable unless Context has accumulated sufficient resolutions to make them well-defined. Context is not matched across systems for equality — it is checked for sufficiency. Each comparison facet contributes up to 1 bit of measurable boundary uncertainty. Context may require an arbitrary number of resolution steps, depending on the boundary.
+ 
+> **\[NOTE\]** This revision reframes the four facets from parallel dimensions to
+> a dependency-ordered structure with an asymmetric resolution layer. The
+> \[OPEN\] question about mapping to FAIR principles, ISO 5087, etc. still
+> applies and should be addressed once the group agrees on the asymmetry.
 
 ---
 
@@ -120,6 +199,53 @@ Your context graph reflects your system's state. My context graph reflects mine.
 This is similar to the mercury pool reflecting the stars metaphor: the local boundary (mercury surface) can only reflect its outer boundary (stars), but it doesn't directly touch or have any ownership of it.
 The pathways between local graphs — every Ask, every resolution trace, every Context entry that flows across a boundary — are not data transfers. They are pathways to reconciliation of mutual understanding. Each one narrows the gap between what your (sender) graph reflects (a local ContextEvent can include boundaries of many systems) and what my (receiver) reflects. The bit-level accuracy is what makes that narrowing measurable. You can say: this boundary had 3 bits of divergence, we resolved 2 through Asks, 1 remains open, the protocol action is Ask or Halt depending on your threshold.
 
+---
+
+
+### Ignorance of Incoherence
+ 
+*Type: Foundational concept*
+ 
+Ignorance of incoherence is the state in which a system acts on ambiguous information with full confidence because no instrument it possesses can distinguish the ambiguity from agreement.
+ 
+**Semantic superposition** describes the state of the information — multiple internally consistent interpretations exist. Ignorance of incoherence describes the state of the system — it does not know it is in superposition. It silently collapses the ambiguity using its own defaults (its own timezone, its own definitions, its own reference frame) and proceeds with zero uncertainty about an interpretation that may be wrong.
+ 
+This is the condition the coherence protocol is built to detect: not incoherence itself, but the absence of any instrument to detect incoherence. Shannon certifies the transmission as perfect. Active inference reaches minimum free energy. Prediction error is zero. The answer is wrong.
+---
+
+
+### Liquid Coherence
+ 
+*Type: Foundational concept*
+ 
+Liquid Coherence is the architectural property in which the protocol produces its own ontology at each boundary, on the same substrate it operates on. The contract between systems is not pre-signed — it assembles through the protocol and is expressed in the same form as the protocol's own state.
+ 
+This distinguishes Liquid Coherence from rigid coherence (a pre-agreed ontology or schema that both sides must adopt before interaction). In a rigid system, the representation layer, the measurement instrument, and the translation layer are separate components. In a liquid system, the **canonical claim form** is simultaneously the storage layer, the projection surface, and the comparison basis. The projection carries all the information needed for comparison. There is nothing left for a separate instrument to do.
+ 
+The term reflects the holonic property of the architecture: every layer is both the product and the instrument. The gauge outputs are claims. The resolution trace is claims. A trained model's weights are claims. The substrate is the same at every level.
+ 
+---
+
+### Resolution Layer
+ 
+*Type: Foundational concept*
+ 
+The resolution layer is the accumulating record of what was missing, what was asked, and what was resolved across the three **comparison facets** (Data, Meaning, Structure). In the **Four Facets Model**, **Context** functions as the resolution layer.
+ 
+The resolution layer is not a fourth comparison axis. It is the protocol's working memory: the structured trace of every incompleteness discovered and every question answered in the course of achieving **coherence**. Every **Ask** in the protocol produces a resolution record. Each resolution may reveal further incompleteness, requiring further Asks. The protocol terminates when no further incompleteness is visible to either party. That is the coherence condition.
+ 
+The resolution layer is recursive: each round of the protocol produces new Context that determines what the next round must address. Data, Meaning, and Structure can be updated through the protocol, but only Context tracks the state of the protocol itself.
+---
+
+### Semantic Superposition
+ 
+*Type: Foundational concept*
+ 
+Semantic superposition is the state in which received data admits multiple internally consistent interpretations, with no information in the received signal to distinguish them.
+ 
+Example: the string `03/01/2026` under the label `time` is in semantic superposition. It may mean March 1st or January 3rd (structural ambiguity). It may refer to order placement time or order receipt time (meaning ambiguity). It may have been produced in Singapore, London, or New York (contextual ambiguity). Shannon's channel delivered the string perfectly. Every bit is correct. The receiver has zero uncertainty about the bits and potentially complete uncertainty about the referent.
+ 
+Semantic superposition is collapsed — not by assumption, but by measurement — when the coherence protocol accumulates sufficient **Context** to ground comparisons on Meaning, Structure, and Data. Each **Ask** in the protocol eliminates interpretations that no amount of inference on the received data could have ruled out.
 ---
 
 ### Signal
